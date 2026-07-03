@@ -1,0 +1,490 @@
+/* ============================================ */
+/* PERFIL                                       */
+/* ============================================ */
+
+.perfil-wrapper {
+  min-height: calc(100vh - 5rem);
+  padding: 16px 0 48px;
+  background: #050505;
+}
+
+.perfil-container {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* VOLTAR */
+.perfil-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  color: #777;
+  cursor: pointer;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 13px;
+  letter-spacing: 1px;
+  padding: 0;
+  margin-bottom: 8px;
+  transition: color 0.2s;
+}
+
+.perfil-back:hover {
+  color: #d4a373;
+}
+
+/* TÍTULO */
+.perfil-header {
+  margin-bottom: 8px;
+}
+
+.perfil-title {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 56px;
+  letter-spacing: 0.05em;
+  color: #d4a373;
+  margin: 0 0 8px 0;
+  line-height: 1;
+}
+
+.perfil-line {
+  width: 128px;
+  height: 4px;
+  background: #d4a373;
+}
+
+/* CARD DO USUÁRIO */
+.perfil-user-card {
+  background: #161616;
+  border: 1px solid rgba(212, 163, 115, 0.2);
+  padding: 28px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.perfil-user-info {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.perfil-avatar {
+  width: 88px;
+  height: 88px;
+  border: 2px solid rgba(212, 163, 115, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #d4a373;
+  flex-shrink: 0;
+}
+
+.perfil-user-name {
+  font-family: "Rajdhani", sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: #f5f5f5;
+  margin: 0 0 10px 0;
+  letter-spacing: 0.04em;
+}
+
+.perfil-user-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.perfil-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 14px;
+  color: #777;
+}
+
+.perfil-meta-row svg {
+  color: #d4a373;
+  flex-shrink: 0;
+}
+
+/* BOTÃO SAIR */
+.perfil-logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: rgba(200, 60, 60, 0.1);
+  border: 1px solid rgba(200, 60, 60, 0.4);
+  color: #e06060;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: 0.2s ease;
+  white-space: nowrap;
+}
+
+.perfil-logout-btn:hover {
+  background: rgba(200, 60, 60, 0.2);
+  border-color: rgba(200, 60, 60, 0.7);
+}
+
+/* CARDS DE SEÇÃO */
+.perfil-section-card {
+  background: #161616;
+  border: 1px solid rgba(212, 163, 115, 0.2);
+  overflow: hidden;
+}
+
+/* TOGGLE */
+.perfil-section-toggle {
+  width: 100%;
+  padding: 22px 32px;
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.perfil-section-toggle:hover {
+  background: rgba(212, 163, 115, 0.04);
+}
+
+.perfil-section-toggle-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: #f5f5f5;
+}
+
+.perfil-section-toggle svg:last-child {
+  color: #777;
+}
+
+.perfil-section-icon {
+  color: #d4a373;
+}
+
+/* BODY DA SEÇÃO */
+.perfil-section-body {
+  padding: 0 32px 28px;
+  overflow: hidden;
+}
+
+/* FORM */
+.perfil-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.perfil-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.perfil-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.perfil-field label {
+  font-family: "Rajdhani", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: #7a7a7a;
+}
+
+.perfil-input-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.perfil-input-box input {
+  width: 100%;
+  height: 48px;
+  background: #1a1a1a;
+  border: 1px solid rgba(212, 163, 115, 0.2);
+  padding: 0 44px;
+  color: #f5f5f5;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 15px;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.perfil-input-box input:focus {
+  outline: none;
+  border-color: #d4a373;
+}
+
+.perfil-input-box input::placeholder {
+  color: #555;
+}
+
+.perfil-input-icon {
+  position: absolute;
+  left: 14px;
+  color: #555;
+  pointer-events: none;
+}
+
+.perfil-eye {
+  position: absolute;
+  right: 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #555;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+  padding: 0;
+}
+
+.perfil-eye:hover {
+  color: #d4a373;
+}
+
+/* SENHA */
+.perfil-password-section {
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding-top: 20px;
+}
+
+.perfil-password-label {
+  font-family: "Rajdhani", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #555;
+  margin: 0 0 14px 0;
+}
+
+/* SALVAR */
+.perfil-save-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 50px;
+  background: #d4a373;
+  border: none;
+  color: #050505;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.perfil-save-btn:hover {
+  background: #c9934a;
+}
+
+/* MENSAGENS */
+.perfil-error {
+  background: rgba(200, 60, 60, 0.15);
+  border: 1px solid rgba(200, 60, 60, 0.4);
+  color: #e06060;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 14px;
+  padding: 10px 16px;
+  margin-bottom: 8px;
+}
+
+.perfil-success {
+  background: rgba(212, 163, 115, 0.15);
+  border: 1px solid rgba(212, 163, 115, 0.4);
+  color: #d4a373;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 14px;
+  padding: 10px 16px;
+  margin-bottom: 8px;
+}
+
+/* AGENDAMENTOS */
+.perfil-appointments-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 22px 32px;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: #f5f5f5;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.perfil-appointments-group {
+  padding: 20px 32px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.perfil-appointments-group:last-child {
+  border-bottom: none;
+}
+
+.perfil-group-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #d4a373;
+  margin-bottom: 14px;
+}
+
+.perfil-apt-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: #1a1a1a;
+  border: 1px solid rgba(212, 163, 115, 0.15);
+  margin-bottom: 10px;
+  gap: 16px;
+}
+
+.perfil-apt-card:last-child {
+  margin-bottom: 0;
+}
+
+.perfil-apt-card.historico {
+  opacity: 0.6;
+}
+
+.perfil-apt-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.perfil-apt-service {
+  font-family: "Rajdhani", sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #d4a373;
+  letter-spacing: 0.04em;
+}
+
+.perfil-apt-details {
+  display: flex;
+  gap: 16px;
+}
+
+.perfil-apt-details span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 13px;
+  color: #777;
+}
+
+.perfil-apt-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.perfil-apt-status {
+  font-family: "Rajdhani", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 4px 10px;
+}
+
+.perfil-apt-status.confirmed {
+  background: rgba(212, 163, 115, 0.15);
+  color: #d4a373;
+  border: 1px solid rgba(212, 163, 115, 0.3);
+}
+
+.perfil-apt-status.pending {
+  background: rgba(255,255,255,0.05);
+  color: #888;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.perfil-cancel-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: rgba(200, 60, 60, 0.1);
+  border: 1px solid rgba(200, 60, 60, 0.4);
+  color: #e06060;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.perfil-cancel-btn:hover {
+  background: rgba(200, 60, 60, 0.2);
+}
+
+.perfil-empty {
+  font-family: "Rajdhani", sans-serif;
+  font-size: 14px;
+  color: #555;
+  text-align: center;
+  padding: 20px 0;
+}
+
+/* RESPONSIVO */
+@media (max-width: 768px) {
+  .perfil-container {
+    padding: 0 20px;
+  }
+
+  .perfil-user-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .perfil-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .perfil-apt-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .perfil-apt-details {
+    flex-direction: column;
+    gap: 4px;
+  }
+}

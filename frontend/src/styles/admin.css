@@ -1,0 +1,394 @@
+/* ============================================ */
+/* ADMIN PANEL                                  */
+/* ============================================ */
+
+.admin-wrapper {
+  min-height: calc(100vh - 5rem);
+  padding: 16px 0 48px;
+  background: #050505;
+}
+
+.admin-container {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ============================================ */
+/* HEADER                                       */
+/* ============================================ */
+
+.admin-header {
+  /* espaçamento já vem do gap do container */
+}
+
+.admin-main-title {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 60px;
+  letter-spacing: 0.05em;
+  color: #d4a373;
+  margin-bottom: 8px;
+  line-height: 1;
+}
+
+.admin-main-line {
+  width: 128px;
+  height: 4px;
+  background: #d4a373;
+}
+
+/* ============================================ */
+/* MÉTRICAS                                     */
+/* ============================================ */
+
+.admin-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.admin-metric-card {
+  background: #161616;
+  border: 1px solid rgba(212, 163, 115, 0.2);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color 0.2s ease;
+}
+
+.admin-metric-card.highlight {
+  border-color: #d4a373;
+}
+
+.admin-metric-value {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 48px;
+  line-height: 1;
+  color: #d4a373;
+  letter-spacing: 0.02em;
+}
+
+.admin-metric-label {
+  font-family: "Rajdhani", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: #7a7a7a;
+}
+
+/* ============================================ */
+/* FILTROS                                      */
+/* ============================================ */
+
+.admin-filters-card {
+  background: #161616;
+  border: 1px solid rgba(212, 163, 115, 0.2);
+  padding: 24px 32px;
+}
+
+.admin-filters-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: #f5f5f5;
+  margin-bottom: 20px;
+}
+
+.admin-filters-icon {
+  width: 18px;
+  height: 18px;
+  color: #d4a373;
+}
+
+.admin-filters-row {
+  display: grid;
+  grid-template-columns: 1fr 240px 200px;
+  gap: 16px;
+}
+
+/* Busca */
+.admin-search-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.admin-search-icon {
+  position: absolute;
+  left: 14px;
+  width: 16px;
+  height: 16px;
+  color: #6f6f6f;
+  pointer-events: none;
+}
+
+.admin-search-input {
+  width: 100%;
+  height: 48px;
+  background: #1a1a1a;
+  border: 1px solid rgba(212, 163, 115, 0.2);
+  padding: 0 16px 0 42px;
+  color: #f5f5f5;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 15px;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
+}
+
+.admin-search-input:focus {
+  outline: none;
+  border-color: #d4a373;
+}
+
+.admin-search-input::placeholder {
+  color: #6f6f6f;
+}
+
+/* Select de status */
+.admin-select {
+  height: 48px;
+  background: #1a1a1a;
+  border: 1px solid rgba(212, 163, 115, 0.2);
+  padding: 0 16px;
+  color: #f5f5f5;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 15px;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+  appearance: auto;
+}
+
+.admin-select:focus {
+  outline: none;
+  border-color: #d4a373;
+}
+
+/* Input de data */
+.admin-date-input {
+  height: 48px;
+  background: #1a1a1a;
+  border: 1px solid rgba(212, 163, 115, 0.2);
+  padding: 0 16px;
+  color: #f5f5f5;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 15px;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
+  width: 100%;
+}
+
+.admin-date-input:focus {
+  outline: none;
+  border-color: #d4a373;
+}
+
+/* ============================================ */
+/* TABELA                                       */
+/* ============================================ */
+
+.admin-table-card {
+  background: #161616;
+  border: 1px solid rgba(212, 163, 115, 0.2);
+  overflow: hidden;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* Cabeçalho */
+.admin-table-head {
+  border-bottom: 1px solid rgba(212, 163, 115, 0.2);
+}
+
+.admin-th {
+  padding: 16px 20px;
+  text-align: left;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #7a7a7a;
+  white-space: nowrap;
+}
+
+.admin-th-actions {
+  text-align: center;
+}
+
+/* Linhas */
+.admin-table-row {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background 0.15s ease;
+}
+
+.admin-table-row:last-child {
+  border-bottom: none;
+}
+
+.admin-table-row:hover {
+  background: rgba(212, 163, 115, 0.04);
+}
+
+.admin-td {
+  padding: 18px 20px;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 15px;
+  color: #d4d4d4;
+  white-space: nowrap;
+}
+
+.admin-td-actions {
+  text-align: center;
+}
+
+/* Célula com ícone */
+.admin-cell-icon-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-row-icon {
+  width: 14px;
+  height: 14px;
+  color: #d4a373;
+  flex-shrink: 0;
+}
+
+/* Badge de status */
+.admin-status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.admin-status-badge.confirmed {
+  background: rgba(212, 163, 115, 0.15);
+  color: #d4a373;
+  border: 1px solid rgba(212, 163, 115, 0.4);
+}
+
+.admin-status-badge.pending {
+  background: rgba(255, 255, 255, 0.05);
+  color: #888;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Botões de ação */
+.admin-action-btn {
+  width: 36px;
+  height: 36px;
+  border: 1px solid;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.admin-action-btn.confirm {
+  background: rgba(212, 163, 115, 0.15);
+  border-color: rgba(212, 163, 115, 0.4);
+  color: #d4a373;
+}
+
+.admin-action-btn.confirm:hover {
+  background: #d4a373;
+  color: #050505;
+}
+
+.admin-action-btn.delete {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #888;
+}
+
+.admin-action-btn.delete:hover {
+  background: rgba(200, 60, 60, 0.2);
+  border-color: rgba(200, 60, 60, 0.5);
+  color: #e06060;
+}
+
+.admin-action-icon {
+  width: 14px;
+  height: 14px;
+}
+
+/* Empty state */
+.admin-empty {
+  padding: 48px;
+  text-align: center;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 15px;
+  color: #555;
+  letter-spacing: 0.04em;
+}
+
+/* Rodapé */
+.admin-table-footer {
+  padding: 14px 20px;
+  border-top: 1px solid rgba(212, 163, 115, 0.1);
+  font-family: "Rajdhani", sans-serif;
+  font-size: 14px;
+  color: #555;
+  text-align: center;
+  letter-spacing: 0.04em;
+}
+
+/* ============================================ */
+/* RESPONSIVO                                   */
+/* ============================================ */
+
+@media (max-width: 1024px) {
+  .admin-metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .admin-filters-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .admin-search-wrapper {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-container {
+    padding: 0 20px;
+  }
+
+  .admin-main-title {
+    font-size: 40px;
+  }
+
+  .admin-metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .admin-filters-row {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-table-card {
+    overflow-x: auto;
+  }
+
+  .admin-table {
+    min-width: 700px;
+  }
+}

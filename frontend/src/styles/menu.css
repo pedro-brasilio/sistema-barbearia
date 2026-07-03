@@ -1,0 +1,167 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&display=swap');
+
+:root {
+  --primary: #d4a373;
+  --accent: #c9934a;
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body: 'Rajdhani', sans-serif;
+}
+
+body {
+  margin: 0;
+  background: #09090b;
+  color: white;
+  font-family: var(--font-body);
+}
+
+/* ============================================ */
+/* HEADER                                       */
+/* ============================================ */
+
+.header {
+  position: relative;
+  border-bottom: 1px solid #1f1f23;
+  background: rgba(9, 9, 11, 0.8);
+  backdrop-filter: blur(6px);
+}
+
+.header-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to right,
+    rgba(212, 163, 115, 0.05),
+    transparent,
+    rgba(201, 147, 74, 0.05)
+  );
+  pointer-events: none;
+}
+
+.header-container {
+  position: relative;
+  max-width: 1280px;
+  margin: auto;
+  padding: 0 24px;
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 80px;
+}
+
+/* ============================================ */
+/* LOGO                                         */
+/* ============================================ */
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: white;
+}
+
+.logo-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-icon-wrapper::before {
+  content: "";
+  position: absolute;
+  width: 56px;
+  height: 56px;
+  background: var(--primary);
+  filter: blur(18px);
+  opacity: 0.45;
+  border-radius: 50%;
+  z-index: 0;
+}
+
+.logo-icon {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  color: var(--primary);
+  z-index: 1;
+}
+
+.logo-title {
+  margin: 0;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 34px;
+  letter-spacing: 3px;
+  line-height: 1;
+  color: var(--primary);
+}
+
+.logo-subtitle {
+  margin: 0;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: #9ca3af;
+  margin-top: 2px;
+}
+
+/* ============================================ */
+/* NAV                                          */
+/* ============================================ */
+
+.nav {
+  display: flex;
+  gap: 4px;
+}
+
+.nav-btn {
+  padding: 10px 24px;
+  background: transparent;
+  border: none;
+  color: #9ca3af;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Rajdhani', sans-serif;
+}
+
+.nav-btn:hover {
+  color: white;
+  background: #18181b;
+}
+
+.nav-btn.active {
+  color: var(--primary);
+  background: rgba(212, 163, 115, 0.1);
+  border-bottom: 2px solid var(--primary);
+}
+
+
+
+/* ============================================ */
+/* ÍCONES                                       */
+/* ============================================ */
+
+.nav svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+}
+
+.logo svg {
+  width: 28px;
+  height: 28px;
+}

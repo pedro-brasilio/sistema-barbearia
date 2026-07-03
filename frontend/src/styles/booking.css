@@ -1,0 +1,504 @@
+/* ============================================ */
+/* BOOKING PAGE - LAYOUT PRINCIPAL              */
+/* ============================================ */
+
+.booking-wrapper {
+  min-height: calc(100vh - 5rem);
+  padding: 16px 0 48px;
+  background: #050505;
+}
+
+.booking-container {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+/* ============================================ */
+/* HEADER / TÍTULO                              */
+/* ============================================ */
+
+.booking-header {
+  margin-bottom: 32px;
+}
+
+.booking-main-title {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 60px;
+  letter-spacing: 0.05em;
+  color: #d4a373;
+  margin-bottom: 8px;
+  line-height: 1;
+}
+
+.booking-main-line {
+  width: 128px;
+  height: 4px;
+  background: #d4a373;
+}
+
+/* ============================================ */
+/* GRID PRINCIPAL: FORMULÁRIO + SIDEBAR         */
+/* ============================================ */
+
+.booking-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+/* ============================================ */
+/* FORMULÁRIO                                   */
+/* ============================================ */
+
+
+
+.booking-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ============================================ */
+/* CARDS                                        */
+/* ============================================ */
+
+.booking-card {
+  background: #161616;
+  border: 1px solid rgba(212, 163, 115, 0.2);
+  padding: 32px;
+}
+
+.booking-card-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  font-family: "Rajdhani", sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #f5f5f5;
+
+  margin-bottom: 24px;
+}
+
+.booking-title-icon {
+  width: 20px;
+  height: 20px;
+  color: #d4a373;
+  flex-shrink: 0;
+}
+
+/* ============================================ */
+/* CAMPOS: DADOS PESSOAIS                       */
+/* ============================================ */
+
+.booking-input-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.booking-label {
+  display: block;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: #7a7a7a;
+  margin-bottom: 8px;
+}
+
+.booking-input {
+  width: 100%;
+  height: 52px;
+  background: #1a1a1a;
+  border: 1px solid rgba(212, 163, 115, 0.2);
+  padding: 0 16px;
+  color: #f5f5f5;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 16px;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
+}
+
+.booking-input:focus {
+  outline: none;
+  border-color: #d4a373;
+}
+
+.booking-input::placeholder {
+  color: #6f6f6f;
+}
+
+/* Telefone: SEM ícone, input simples igual ao nome */
+.booking-phone-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Esconde o ícone de telefone — não está no design */
+.booking-phone-icon {
+  display: none;
+}
+
+.booking-phone-input {
+  width: 100%;
+  padding-left: 16px; /* igual ao input normal */
+}
+
+/* ============================================ */
+/* SERVIÇOS                                     */
+/* ============================================ */
+
+.booking-services-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.booking-service-btn {
+  background: #1a1a1a;
+  border: 1px solid rgba(212, 163, 115, 0.2);
+  padding: 18px 16px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  width: 100%;
+}
+
+.booking-service-btn:hover {
+  border-color: rgba(212, 163, 115, 0.5);
+}
+
+.booking-service-btn.selected {
+  border-color: #d4a373;
+  background: rgba(212, 163, 115, 0.1);
+}
+
+.booking-service-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.booking-service-name {
+  font-family: "Rajdhani", sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  color: #f5f5f5;
+  transition: color 0.2s ease;
+}
+
+.booking-service-name.selected {
+  color: #d4a373;
+}
+
+.booking-service-price {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 30px;
+  letter-spacing: 0.05em;
+  color: #d4a373;
+}
+
+/* ============================================ */
+/* DATA E HORÁRIO                               */
+/* ============================================ */
+
+.booking-date-grid {
+  max-width: 360px;
+  margin-bottom: 24px;
+}
+
+
+
+.booking-time-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.booking-small-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* GRADE DE HORÁRIOS — 6 colunas */
+.booking-times-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+
+.booking-time-btn {
+  height: 42px;
+  background: #1a1a1a;
+  border: 1px solid rgba(212, 163, 115, 0.2);
+  color: #f5f5f5;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.booking-time-btn:hover {
+  border-color: rgba(212, 163, 115, 0.5);
+}
+
+.booking-time-btn.selected {
+  background: #d4a373;
+  border-color: #d4a373;
+  color: #050505;
+}
+
+/* ============================================ */
+/* BOTÃO CONFIRMAR                              */
+/* ============================================ */
+
+.booking-confirm-btn {
+  width: 100%;
+  height: 58px;
+  border: none;
+  background: #d4a373;
+  color: #050505;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.booking-confirm-btn:hover {
+  background: #c9934a;
+}
+
+.booking-confirm-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+/* ============================================ */
+/* MENSAGEM DE SUCESSO                          */
+/* ============================================ */
+
+.booking-success {
+  margin-top: 24px;
+  padding: 16px;
+  background: rgba(212, 163, 115, 0.2);
+  border: 1px solid #d4a373;
+  color: #d4a373;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+/* ============================================ */
+/* SIDEBAR: MEUS AGENDAMENTOS                   */
+/* ============================================ */
+
+.booking-sidebar {
+  position: sticky;
+  top: 24px;
+}
+
+.booking-sidebar-card {
+  background: #161616;
+  border: 1px solid rgba(212, 163, 115, 0.2);
+  padding: 24px;
+}
+
+.booking-sidebar-title {
+  font-family: "Rajdhani", sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  color: #f5f5f5;
+  letter-spacing: 0.04em;
+  margin-bottom: 16px;
+}
+
+.booking-sidebar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.booking-empty-text {
+  font-family: "Rajdhani", sans-serif;
+  color: #777;
+  font-size: 15px;
+  line-height: 1.5;
+  text-align: center;
+  padding: 32px 0;
+}
+
+/* ============================================ */
+/* CARDS DE AGENDAMENTO                         */
+/* ============================================ */
+
+.appointment-card {
+  padding: 16px;
+  background: #1a1a1a;
+  border: 1px solid rgba(212, 163, 115, 0.2);
+}
+
+.appointment-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.appointment-service {
+  font-family: "Rajdhani", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #d4a373;
+  letter-spacing: 0.04em;
+}
+
+.appointment-status {
+  font-family: "Rajdhani", sans-serif;
+  font-size: 12px;
+  padding: 2px 8px;
+  font-weight: 600;
+}
+
+.appointment-status.confirmed {
+  background: rgba(212, 163, 115, 0.2);
+  color: #d4a373;
+}
+
+.appointment-status.pending {
+  background: rgba(255, 255, 255, 0.05);
+  color: #777;
+}
+
+.appointment-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.appointment-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 14px;
+  color: #7a7a7a;
+}
+
+.appointment-icon {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+/* ============================================ */
+/* RESPONSIVO                                   */
+/* ============================================ */
+
+@media (max-width: 1024px) {
+  .booking-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .booking-sidebar {
+    position: relative;
+    top: unset;
+  }
+}
+
+@media (max-width: 768px) {
+  .booking-container {
+    padding: 0 20px;
+  }
+
+  .booking-main-title {
+    font-size: 42px;
+  }
+
+  .booking-input-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .booking-services-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .booking-times-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .booking-card {
+    padding: 24px;
+  }
+}
+/* Cole no final do booking.css */
+
+.booking-locked {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+}
+
+.booking-locked-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+  padding: 20px;
+}
+
+.booking-locked-icon {
+  color: #d4a373;
+  opacity: 0.6;
+}
+
+.booking-locked-title {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 28px;
+  letter-spacing: 0.05em;
+  color: #d4a373;
+  margin: 0;
+}
+
+.booking-locked-text {
+  font-family: "Rajdhani", sans-serif;
+  font-size: 15px;
+  color: #777;
+  margin: 0;
+  max-width: 300px;
+}
+
+.booking-input-readonly {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.booking-error {
+  background: rgba(200, 60, 60, 0.15);
+  border: 1px solid rgba(200, 60, 60, 0.4);
+  color: #e06060;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 14px;
+  padding: 10px 16px;
+  text-align: center;
+}

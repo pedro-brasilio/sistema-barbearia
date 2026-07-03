@@ -1,6 +1,6 @@
 # Sistema de Barbearia
 
-Projeto acadêmico desenvolvido para a disciplina de Projeto Integrado Multidisciplinar (PIM), com o objetivo de aplicar conceitos de desenvolvimento em C# e modelagem de banco de dados relacional.
+Projeto acadêmico desenvolvido para a disciplina de Projeto Integrado Multidisciplinar (PIM), com o objetivo de aplicar conceitos de desenvolvimento back-end em C#, front-end em React e modelagem de banco de dados relacional.
 
 O sistema foi pensado para apoiar a organização de uma barbearia, centralizando informações de clientes, barbeiros, serviços, agendamentos, produtos e pagamentos.
 
@@ -15,12 +15,27 @@ O sistema foi pensado para apoiar a organização de uma barbearia, centralizand
 - Cadastro e controle básico de estoque de produtos;
 - Registro de pagamentos vinculados aos agendamentos.
 
+## Estrutura do projeto
+
+```
+sistema-barbearia/
+├── backend/          # API em C# (.NET) + Entity Framework Core
+├── frontend/         # Interface web em React + TypeScript + Vite
+├── Barbearia.sql     # Script de criação do banco de dados
+└── PIM3ºSEMESTRE.sln # Solução do Visual Studio
+```
+
 ## Tecnologias utilizadas
 
-- C#
+**Back-end**
+- C# / .NET
+- Entity Framework Core
 - SQL Server
-- Visual Studio 2022
-- SQL
+
+**Front-end**
+- React
+- TypeScript
+- Vite
 
 ## Estrutura do banco de dados
 
@@ -38,14 +53,26 @@ O script também inclui dados iniciais de um barbeiro padrão e serviços para t
 
 ## Como executar
 
-1. Clone ou baixe este repositório.
-2. Abra a solução `PIM3ºSEMESTRE.sln` no Visual Studio.
-3. Abra o arquivo `Barbearia.sql` no SQL Server Management Studio ou em outra ferramenta compatível com SQL Server.
-4. Execute o script para criar o banco de dados `BarbeariaDB`.
-5. Verifique e configure a string de conexão do projeto, caso necessário.
-6. Execute o projeto pelo Visual Studio.
+### Banco de dados
+
+1. Abra o arquivo `Barbearia.sql` no SQL Server Management Studio ou em outra ferramenta compatível com SQL Server.
+2. Execute o script para criar o banco de dados `BarbeariaDB`.
 
 > **Atenção:** no final do arquivo `Barbearia.sql` existe um comando para excluir o banco de dados (`DROP DATABASE BarbeariaDB`). Remova ou comente esse trecho antes de executar o script em um ambiente onde deseja manter os dados.
+
+### Back-end (API)
+
+1. Abra a solução `PIM3ºSEMESTRE.sln` no Visual Studio, ou navegue até a pasta `backend/`.
+2. Verifique e configure a string de conexão em `appsettings.json`, caso necessário.
+3. Execute o projeto (Visual Studio ou `dotnet run` dentro de `backend/`).
+
+### Front-end
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
 ## Autores
 
