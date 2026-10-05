@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Barbershop Mobile (celular/emulador)",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "mobile",
+      "program": "lib/main.dart"
+    },
+    {
+      "name": "Barbershop Mobile (Chrome)",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "mobile",
+      "program": "lib/main.dart",
+      "deviceId": "chrome",
+      "args": ["--web-port", "5174"]
+    }
+  ]
+}

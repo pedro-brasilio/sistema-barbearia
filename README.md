@@ -21,6 +21,7 @@ O sistema foi pensado para apoiar a organização de uma barbearia, centralizand
 sistema-barbearia/
 ├── backend/          # API em C# (.NET) + Entity Framework Core
 ├── frontend/         # Interface web em React + TypeScript + Vite
+├── mobile/           # Versão mobile em Flutter (Android, iOS e Web)
 ├── Barbearia.sql     # Script de criação do banco de dados
 └── PIM3ºSEMESTRE.sln # Solução do Visual Studio
 ```
@@ -36,6 +37,9 @@ sistema-barbearia/
 - React
 - TypeScript
 - Vite
+
+**Mobile**
+- Flutter / Dart
 
 ## Estrutura do banco de dados
 
@@ -73,6 +77,18 @@ cd frontend
 npm install
 npm run dev
 ```
+
+### Mobile (Flutter)
+
+Com a API rodando (`dotnet run --launch-profile http` dentro de `backend/`), dê dois cliques em `mobile/rodar.bat` ou rode:
+
+```bash
+cd mobile
+flutter pub get
+flutter run
+```
+
+Os detalhes (emulador, celular físico e Chrome) estão em [`mobile/README.md`](mobile/README.md).
 
 ## Autores
 

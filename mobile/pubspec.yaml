@@ -1,0 +1,42 @@
+name: barbershop_mobile
+description: "Versão mobile (Flutter) do Sistema de Barbearia."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+  flutter: ">=3.24.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  http: ^1.2.2
+  lucide_icons_flutter: ^3.1.22
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+
+  # Mesmas fontes do site (Google Fonts), embutidas para funcionar offline.
+  fonts:
+    - family: BebasNeue
+      fonts:
+        - asset: assets/fonts/BebasNeue-Regular.ttf
+    - family: Rajdhani
+      fonts:
+        - asset: assets/fonts/Rajdhani-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Rajdhani-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Rajdhani-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Rajdhani-Bold.ttf
+          weight: 700
