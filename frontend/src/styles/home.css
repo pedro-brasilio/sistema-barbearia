@@ -97,6 +97,40 @@ overflow:hidden;
 background:var(--accent);
 }
 
+.hero-actions{
+display:flex;
+flex-wrap:wrap;
+gap:16px;
+}
+
+/* botão do app: contorno, para não competir com o AGENDAR */
+.hero-button-app{
+display:inline-flex;
+align-items:center;
+gap:10px;
+padding:15px 32px;
+border:1px solid var(--primary);
+background:transparent;
+color:var(--primary);
+font-family:'Rajdhani';
+font-size:13.33px;
+font-weight:600;
+letter-spacing:2px;
+text-decoration:none;
+transition:.2s;
+}
+
+.hero-button-app:hover{
+background:rgba(212,163,115,.1);
+}
+
+.hero-app-hint{
+color:#8a8f98;
+font-family:'Rajdhani';
+font-size:13px;
+margin:12px 0 0;
+}
+
 /* RIGHT CARD */
 
 .hero-right{

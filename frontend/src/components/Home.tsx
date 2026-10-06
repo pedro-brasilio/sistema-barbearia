@@ -1,5 +1,9 @@
 import { motion } from "framer-motion";
-import { Scissors, Clock, Star, MapPin } from "lucide-react";
+import { Scissors, Clock, Star, MapPin, Download } from "lucide-react";
+
+// APK da release mais recente, publicado pelo GitHub Actions (.github/workflows/app-android.yml)
+const APK_URL =
+  "https://github.com/pedro-brasilio/sistema-barbearia/releases/latest/download/barbershop.apk";
 
 interface HomeProps {
   onNavigateToBooking: () => void;
@@ -52,12 +56,23 @@ export function Home({ onNavigateToBooking }: HomeProps) {
                 ambiente acolhedor e o melhor atendimento da cidade.
               </p>
 
-              <button
-                onClick={onNavigateToBooking}
-                className="hero-button"
-              >
-                AGENDAR HORÁRIO
-              </button>
+              <div className="hero-actions">
+                <button
+                  onClick={onNavigateToBooking}
+                  className="hero-button"
+                >
+                  AGENDAR HORÁRIO
+                </button>
+
+                <a href={APK_URL} className="hero-button-app">
+                  <Download size={18} />
+                  BAIXAR APP
+                </a>
+              </div>
+
+              <p className="hero-app-hint">
+                App para Android. Se o celular pedir, permita instalar apps desta fonte.
+              </p>
             </motion.div>
 
             <motion.div

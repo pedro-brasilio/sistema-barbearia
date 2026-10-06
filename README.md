@@ -115,6 +115,19 @@ Para o app Flutter usar a API publicada:
 flutter run --dart-define=API_URL=https://barbearia-pim-api.onrender.com/api
 ```
 
+## App Android (APK)
+
+O botão **BAIXAR APP** da página inicial do site baixa o APK da [release mais recente](https://github.com/pedro-brasilio/sistema-barbearia/releases/latest), já apontando para a API do Render.
+
+O APK é gerado pelo GitHub Actions ([`.github/workflows/app-android.yml`](.github/workflows/app-android.yml)) a cada push que altera `mobile/`. Em qualquer branch o APK fica disponível como artefato da execução; na `main` ele também é publicado como uma nova release.
+
+O APK é assinado sempre com a mesma chave, para que uma versão nova instale por cima da anterior. A chave fica nos secrets do repositório (**Settings > Secrets and variables > Actions**):
+
+- `ANDROID_KEYSTORE_BASE64`: keystore PKCS12 (`.p12`) em base64;
+- `ANDROID_KEYSTORE_PASSWORD`: senha da keystore.
+
+No celular, o Android pede permissão para instalar apps baixados pelo navegador; basta permitir.
+
 ## Autores
 
 - Pedro Luciano Brasilio dos Santos
