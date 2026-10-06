@@ -362,6 +362,7 @@ class _BookingPageState extends State<BookingPage> {
         children: [
           Text(
             'MEUS AGENDAMENTOS',
+            textAlign: TextAlign.center,
             style: AppText.body(
               24,
               color: AppColors.text,
@@ -559,13 +560,11 @@ class _EmptyText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 32),
-      child: Text(
-        text,
-        textAlign: TextAlign.center,
-        style: AppText.body(15, color: AppColors.gray77, height: 1.5),
-      ),
+    // Centralizado, como o título do card
+    return Text(
+      text,
+      textAlign: TextAlign.center,
+      style: AppText.body(15, color: AppColors.gray77, height: 1.5),
     );
   }
 }

@@ -1,8 +1,10 @@
 import { motion } from "framer-motion";
 import { Scissors, Clock, Star, MapPin, Download } from "lucide-react";
 
-// APK da release mais recente, publicado pelo GitHub Actions (.github/workflows/app-android.yml)
+// APK da release mais recente, publicado pelo GitHub Actions (.github/workflows/app-android.yml).
+// VITE_APK_URL permite testar com outro arquivo, ex.: /barbershop.apk em public/.
 const APK_URL =
+  import.meta.env.VITE_APK_URL ||
   "https://github.com/pedro-brasilio/sistema-barbearia/releases/latest/download/barbershop.apk";
 
 interface HomeProps {
@@ -64,15 +66,11 @@ export function Home({ onNavigateToBooking }: HomeProps) {
                   AGENDAR HORÁRIO
                 </button>
 
-                <a href={APK_URL} className="hero-button-app">
+                <a href={APK_URL} download="barbershop.apk" className="hero-button-app">
                   <Download size={18} />
                   BAIXAR APP
                 </a>
               </div>
-
-              <p className="hero-app-hint">
-                App para Android. Se o celular pedir, permita instalar apps desta fonte.
-              </p>
             </motion.div>
 
             <motion.div

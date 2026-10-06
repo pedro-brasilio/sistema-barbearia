@@ -11,6 +11,8 @@ node_modules
 dist
 dist-ssr
 *.local
+# APK copiado para testar o botão "BAIXAR APP" localmente
+public/*.apk
 
 # Editor directories and files
 .vscode/*
