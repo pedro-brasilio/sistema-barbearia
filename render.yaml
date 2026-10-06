@@ -1,0 +1,52 @@
+# Blueprint do Render: cria o banco, a API e o site de uma vez.
+# No painel do Render: New > Blueprint > selecione este repositório.
+#
+# As URLs abaixo assumem que o Render deu exatamente os nomes "barbearia-pim-api" e
+# "barbearia-pim-web". Se ele acrescentar um sufixo (ex.: barbearia-pim-api-x1y2),
+# atualize Cors__Origins e VITE_API_URL no painel e faça um novo deploy.
+
+databases:
+  - name: barbearia-db
+    plan: free
+    region: virginia
+    databaseName: barbearia
+    user: barbearia
+
+services:
+  - type: web
+    name: barbearia-pim-api
+    runtime: docker
+    plan: free
+    region: virginia
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /api/ServicosControlador
+    buildFilter:
+      paths:
+        - backend/**
+    envVars:
+      - key: PORT
+        value: "8080"
+      - key: ConnectionStrings__DefaultConnection
+        fromDatabase:
+          name: barbearia-db
+          property: connectionString
+      - key: Cors__Origins
+        value: https://barbearia-pim-web.onrender.com
+      # Login do administrador, pedido na criação do Blueprint
+      - key: Admin__Email
+        sync: false
+      - key: Admin__Senha
+        sync: false
+
+  - type: web
+    name: barbearia-pim-web
+    runtime: static
+    buildCommand: cd frontend && npm ci && npm run build
+    staticPublishPath: ./frontend/dist
+    buildFilter:
+      paths:
+        - frontend/**
+    envVars:
+      - key: VITE_API_URL
+        value: https://barbearia-pim-api.onrender.com/api

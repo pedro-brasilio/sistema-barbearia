@@ -1,4 +1,5 @@
-const BASE_URL = 'http://localhost:5039/api';
+// Em produção (Render) a URL vem de VITE_API_URL, definida no momento do build.
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5039/api';
 
 async function parseResponse(res: Response) {
   const text = await res.text();

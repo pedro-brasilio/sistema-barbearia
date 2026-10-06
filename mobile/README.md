@@ -7,7 +7,7 @@ Versão mobile do Sistema de Barbearia. Usa o mesmo layout, as mesmas cores, as 
 - Flutter 3.24 ou mais recente. A pasta `android/` foi gerada com o Flutter 3.47.
 - Para Android: Android Studio com um emulador, ou um celular com depuração USB.
 - Para testar no computador sem emulador: Google Chrome.
-- A API do `backend/` rodando, com o banco `BarbeariaDB` criado pelo `Barbearia.sql`.
+- A API do `backend/` rodando, com o PostgreSQL local (veja o README principal).
 
 ## Como rodar
 

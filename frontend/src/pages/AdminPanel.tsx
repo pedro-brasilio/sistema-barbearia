@@ -55,7 +55,7 @@ export function AdminPanel({
   });
 
   const formatDate = (dateStr: string) => {
-    const [year, month, day] = dateStr.split('-');
+    const [, month, day] = dateStr.split('-');
     const months = [
       'jan', 'fev', 'mar', 'abr', 'mai', 'jun',
       'jul', 'ago', 'set', 'out', 'nov', 'dez',

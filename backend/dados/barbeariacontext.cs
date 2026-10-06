@@ -23,6 +23,20 @@ namespace barbearia.dados
         public DbSet<produto> produtos { get; set; }
 
         public DbSet<servico> servicos { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            // O PostgreSQL só aceita DateTime com fuso (UTC) em "timestamp with time zone",
+            // que é o padrão do Npgsql. As datas da API chegam sem fuso, então usamos
+            // tipos sem fuso: "date" para o dia do agendamento (como no Barbearia.sql).
+            modelBuilder.Entity<Agendamento>()
+                .Property(a => a.Data)
+                .HasColumnType("date");
+
+            modelBuilder.Entity<pagamento>()
+                .Property(p => p.DataPagamento)
+                .HasColumnType("timestamp without time zone");
+        }
         }
 }
 

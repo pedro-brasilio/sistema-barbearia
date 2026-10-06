@@ -22,7 +22,8 @@ sistema-barbearia/
 ├── backend/          # API em C# (.NET) + Entity Framework Core
 ├── frontend/         # Interface web em React + TypeScript + Vite
 ├── mobile/           # Versão mobile em Flutter (Android, iOS e Web)
-├── Barbearia.sql     # Script de criação do banco de dados
+├── Barbearia.sql     # Modelagem original do banco (SQL Server, só referência)
+├── render.yaml       # Configuração do deploy no Render
 └── PIM3ºSEMESTRE.sln # Solução do Visual Studio
 ```
 
@@ -31,7 +32,7 @@ sistema-barbearia/
 **Back-end**
 - C# / .NET
 - Entity Framework Core
-- SQL Server
+- PostgreSQL
 
 **Front-end**
 - React
@@ -59,15 +60,20 @@ O script também inclui dados iniciais de um barbeiro padrão e serviços para t
 
 ### Banco de dados
 
-1. Abra o arquivo `Barbearia.sql` no SQL Server Management Studio ou em outra ferramenta compatível com SQL Server.
-2. Execute o script para criar o banco de dados `BarbeariaDB`.
+O banco é PostgreSQL. A forma mais simples de ter um localmente é com Docker:
 
-> **Atenção:** no final do arquivo `Barbearia.sql` existe um comando para excluir o banco de dados (`DROP DATABASE BarbeariaDB`). Remova ou comente esse trecho antes de executar o script em um ambiente onde deseja manter os dados.
+```bash
+docker run -d --name barbearia-pg -p 5432:5432 -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=barbearia postgres:17
+```
+
+As tabelas, o barbeiro padrão e os serviços são criados automaticamente quando a API inicia (migrations do Entity Framework). Em desenvolvimento também é criado o administrador `admin@barbearia.com` / `admin123` (definido em `backend/appsettings.Development.json`).
+
+O arquivo `Barbearia.sql` é a modelagem original em SQL Server e fica no repositório apenas como referência.
 
 ### Back-end (API)
 
 1. Abra a solução `PIM3ºSEMESTRE.sln` no Visual Studio, ou navegue até a pasta `backend/`.
-2. Verifique e configure a string de conexão em `appsettings.json`, caso necessário.
+2. Verifique e configure a string de conexão em `appsettings.json`, caso necessário (o padrão é o Postgres do comando acima).
 3. Execute o projeto (Visual Studio ou `dotnet run` dentro de `backend/`).
 
 ### Front-end
@@ -89,6 +95,25 @@ flutter run
 ```
 
 Os detalhes (emulador, celular físico e Chrome) estão em [`mobile/README.md`](mobile/README.md).
+
+## Deploy no Render
+
+O arquivo `render.yaml` cria tudo de uma vez: o banco PostgreSQL, a API (via Docker) e o site (estático).
+
+1. No [Render](https://render.com), clique em **New > Blueprint** e selecione este repositório.
+2. Preencha `Admin__Email` e `Admin__Senha` (login do administrador do site).
+3. Confirme. O primeiro deploy da API leva alguns minutos.
+4. Se o Render tiver acrescentado um sufixo aos nomes dos serviços, ajuste no painel:
+   - na API, `Cors__Origins` = endereço do site (ex.: `https://barbearia-pim-web.onrender.com`);
+   - no site, `VITE_API_URL` = endereço da API + `/api` (ex.: `https://barbearia-pim-api.onrender.com/api`), e faça **Manual Deploy**.
+
+Limitações do plano gratuito: a API "dorme" após 15 minutos sem acesso (a primeira requisição depois disso leva cerca de 1 minuto) e o banco gratuito expira 30 dias após a criação.
+
+Para o app Flutter usar a API publicada:
+
+```bash
+flutter run --dart-define=API_URL=https://barbearia-pim-api.onrender.com/api
+```
 
 ## Autores
 
