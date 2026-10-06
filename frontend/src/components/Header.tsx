@@ -1,4 +1,4 @@
-import { Scissors, Calendar, User, LayoutGrid } from "lucide-react";
+import { Scissors, House, Calendar, User, LayoutGrid } from "lucide-react";
  
 interface HeaderProps {
   currentView: string;
@@ -28,15 +28,16 @@ export function Header({ currentView, onNavigate, user }: HeaderProps) {
               onClick={() => onNavigate("home")}
               className={`nav-btn ${currentView === "home" ? "active" : ""}`}
             >
-              INÍCIO
+              <House size={16} className="nav-icon-mobile" />
+              <span className="nav-label">INÍCIO</span>
             </button>
- 
+
             <button
               onClick={() => onNavigate("booking")}
               className={`nav-btn ${currentView === "booking" ? "active" : ""}`}
             >
               <Calendar size={16} />
-              AGENDAR
+              <span className="nav-label">AGENDAR</span>
             </button>
  
             {/* LOGIN vira nome do usuário após login */}
@@ -47,7 +48,9 @@ export function Header({ currentView, onNavigate, user }: HeaderProps) {
               }`}
             >
               <User size={16} />
-              {user ? user.name.split(" ")[0].toUpperCase() : "LOGIN"}
+              <span className="nav-label">
+                {user ? user.name.split(" ")[0].toUpperCase() : "LOGIN"}
+              </span>
             </button>
  
             {/* ADMIN só aparece se for admin */}
@@ -57,7 +60,7 @@ export function Header({ currentView, onNavigate, user }: HeaderProps) {
                 className={`nav-btn ${currentView === "admin" ? "active" : ""}`}
               >
                 <LayoutGrid size={16} />
-                ADMIN
+                <span className="nav-label">ADMIN</span>
               </button>
             )}
           </nav>

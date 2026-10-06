@@ -447,7 +447,24 @@
   }
 
   .booking-card {
-    padding: 24px;
+    padding: 24px 20px;
+  }
+
+  .booking-wrapper {
+    padding: 8px 0 40px;
+  }
+
+  .booking-header {
+    margin-bottom: 24px;
+  }
+
+  .booking-grid {
+    gap: 24px;
+  }
+
+  /* sem a margem padrão do h3, o título fica rente ao topo do card */
+  .booking-card-title {
+    margin-top: 0;
   }
 }
 /* Cole no final do booking.css */

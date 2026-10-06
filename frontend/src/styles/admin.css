@@ -384,11 +384,90 @@
     grid-template-columns: 1fr;
   }
 
-  .admin-table-card {
-    overflow-x: auto;
+  .admin-filters-card,
+  .admin-metric-card {
+    padding: 20px;
   }
 
-  .admin-table {
-    min-width: 700px;
+  .admin-metric-value {
+    font-size: 40px;
+  }
+
+  .admin-filters-title {
+    margin-top: 0;
+  }
+
+  /* Tabela vira um card por agendamento, igual ao app:
+     dados à esquerda, status e botão de ação à direita */
+  .admin-table,
+  .admin-table tbody {
+    display: block;
+  }
+
+  .admin-table thead {
+    display: none;
+  }
+
+  .admin-table-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "cliente  status"
+      "servico  acao"
+      "telefone acao"
+      "data     acao"
+      "horario  acao";
+    gap: 6px 12px;
+    padding: 16px 20px;
+  }
+
+  .admin-table-row .admin-td {
+    padding: 0;
+    white-space: normal;
+  }
+
+  .admin-table-row .admin-td:nth-child(1) {
+    grid-area: cliente;
+    color: #f5f5f5;
+    font-weight: 600;
+  }
+
+  .admin-table-row .admin-td:nth-child(2) {
+    grid-area: telefone;
+  }
+
+  .admin-table-row .admin-td:nth-child(3) {
+    grid-area: servico;
+    color: #d4a373;
+    font-weight: 600;
+  }
+
+  .admin-table-row .admin-td:nth-child(4) {
+    grid-area: data;
+  }
+
+  .admin-table-row .admin-td:nth-child(5) {
+    grid-area: horario;
+  }
+
+  .admin-table-row .admin-td:nth-child(6) {
+    grid-area: status;
+    justify-self: end;
+  }
+
+  .admin-table-row .admin-td:nth-child(7) {
+    grid-area: acao;
+    align-self: center;
+    justify-self: end;
+  }
+
+  .admin-action-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .admin-empty {
+    display: block;
+    padding: 32px 20px;
   }
 }

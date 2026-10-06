@@ -7,11 +7,36 @@
   --font-body: 'Rajdhani', sans-serif;
 }
 
+/* Padding e borda contam dentro da largura: sem isso, todo bloco com
+   width: 100% + padding fica mais largo que a tela do celular */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%; /* iPhone deitado não aumenta a fonte sozinho */
+}
+
 body {
   margin: 0;
   background: #09090b;
   color: white;
   font-family: var(--font-body);
+  /* iPhone deitado: mantém o conteúdo fora da área do notch */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* No iPhone, tocar num campo com fonte menor que 16px dá zoom na página,
+   e ela não volta sozinha. O !important vence as regras de cada tela. */
+@media (pointer: coarse) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
 }
 
 /* ============================================ */
@@ -138,9 +163,17 @@ body {
   font-family: 'Rajdhani', sans-serif;
 }
 
-.nav-btn:hover {
-  color: white;
-  background: #18181b;
+/* Só com mouse: no toque o hover "gruda" no botão depois do toque */
+@media (hover: hover) and (pointer: fine) {
+  .nav-btn:hover {
+    color: white;
+    background: #18181b;
+  }
+}
+
+/* Ícone do INÍCIO: só aparece no menu inferior do celular */
+.nav-icon-mobile {
+  display: none;
 }
 
 .nav-btn.active {
@@ -164,4 +197,101 @@ body {
 .logo svg {
   width: 28px;
   height: 28px;
+}
+
+/* Tablet: menu ainda no topo, com botões mais justos para caber ao lado do logo */
+@media (max-width: 1024px) {
+  .nav-btn {
+    padding: 10px 14px;
+  }
+}
+
+/* ============================================ */
+/* CELULAR: menu vira uma barra fixa embaixo,   */
+/* igual ao app                                 */
+/* ============================================ */
+
+@media (max-width: 768px) {
+  .header {
+    /* backdrop-filter prenderia o menu fixo dentro do header */
+    backdrop-filter: none;
+  }
+
+  .header-container {
+    padding: 0 20px;
+  }
+
+  .header-inner {
+    height: 64px;
+  }
+
+  .logo {
+    gap: 12px;
+  }
+
+  .logo svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .logo-icon-wrapper::before {
+    width: 44px;
+    height: 44px;
+  }
+
+  .logo-title {
+    font-size: 28px;
+  }
+
+  .logo-subtitle {
+    font-size: 9px;
+    letter-spacing: 3px;
+  }
+
+  .nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    gap: 0;
+    background: rgba(9, 9, 11, 0.97);
+    border-top: 1px solid #1f1f23;
+    /* afasta os botões da barra de gestos e do notch do iPhone */
+    padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom)
+      env(safe-area-inset-left);
+  }
+
+  .nav-btn {
+    flex: 1;
+    min-width: 0;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    height: 60px;
+    padding: 0 4px;
+    font-size: 12px;
+  }
+
+  .nav svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .nav-icon-mobile {
+    display: block;
+  }
+
+  /* nomes compridos (ex.: ADMINISTRADOR) terminam em "..." */
+  .nav-label {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* espaço para o fim da página não ficar escondido atrás do menu */
+  main {
+    padding-bottom: calc(60px + env(safe-area-inset-bottom));
+  }
 }

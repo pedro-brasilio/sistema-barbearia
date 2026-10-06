@@ -381,3 +381,101 @@ transition:.35s;
 .service-card:hover .service-corner{
 transform:translate(65%,-65%);
 }
+/* ============================================ */
+/* RESPONSIVO                                   */
+/* ============================================ */
+
+@media (max-width: 1024px) {
+.services-grid{
+grid-template-columns:repeat(2,1fr);
+}
+}
+
+@media (max-width: 768px) {
+.hero{
+height:auto;
+padding:48px 0 56px;
+}
+
+.hero-container,
+.container{
+padding:0 20px;
+}
+
+.hero-grid{
+grid-template-columns:1fr;
+}
+
+/* o quadro decorativo da tesoura só ocupa espaço no celular */
+.hero-right{
+display:none;
+}
+
+.hero-title{
+font-size:68px;
+}
+
+.hero-text{
+font-size:17px;
+margin:16px 0 28px;
+}
+
+.services,
+.info{
+padding:56px 0;
+}
+
+.section-title{
+font-size:44px;
+}
+
+.info-grid{
+grid-template-columns:1fr;
+gap:16px;
+}
+
+.info-card{
+padding:28px 24px;
+}
+
+/* sem a margem padrão do h4 em cima, os cards ficam mais baixos */
+.service-card{
+padding:20px 24px;
+}
+
+.service-card h4{
+margin:0 0 12px;
+}
+
+.info-icon{
+width:40px;
+height:40px;
+margin-bottom:16px;
+}
+
+.info-card h4{
+margin:0 0 8px;
+}
+
+.info-card p{
+margin:0;
+}
+}
+
+@media (max-width: 560px) {
+.services-grid{
+grid-template-columns:1fr;
+gap:12px;
+}
+
+/* botões um embaixo do outro, na largura toda */
+.hero-actions{
+flex-direction:column;
+}
+
+.hero-button,
+.hero-button-app{
+width:100%;
+justify-content:center;
+}
+}
