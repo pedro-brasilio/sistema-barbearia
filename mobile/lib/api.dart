@@ -36,7 +36,9 @@ class Api {
   }
 
   static const _jsonHeaders = {'Content-Type': 'application/json'};
-  static const _timeout = Duration(seconds: 15);
+  // A API gratuita do Render leva cerca de 1 minuto para "acordar" depois de
+  // 15 minutos sem acesso, então a espera precisa ser maior que isso.
+  static const _timeout = Duration(seconds: 90);
 
   static Uri _uri(String path) => Uri.parse('$baseUrl$path');
 

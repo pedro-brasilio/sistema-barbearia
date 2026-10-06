@@ -17,7 +17,7 @@ interface Appointment {
 interface BookingFormProps {
   user: { id: number; name: string; email: string; telefone: string; isAdmin: boolean } | null;
   appointments: Appointment[];
-  onAddAppointment: (appointment: Omit<Appointment, "id" | "status">) => void;
+  onAddAppointment: () => void; // recarrega a lista depois de agendar
   onNavigateToLogin: () => void;
 }
 
@@ -88,13 +88,7 @@ export function BookingForm({
       Situacao: "pendente",
     });
 
-    onAddAppointment({
-      clientName: user.name,
-      phone: user.telefone,
-      service: formData.service,
-      date: formData.date,
-      time: formData.time,
-    });
+    onAddAppointment();
 
     setFormData({ service: "", date: "", time: "" });
     setShowSuccess(true);
@@ -306,7 +300,7 @@ export function BookingForm({
                       <div className="appointment-details">
                         <div className="appointment-detail-row">
                           <Calendar className="appointment-icon" />
-                          {new Date(apt.date).toLocaleDateString("pt-BR")}
+                          {new Date(`${apt.date}T00:00:00`).toLocaleDateString("pt-BR")}
                         </div>
                         <div className="appointment-detail-row">
                           <Clock className="appointment-icon" />

@@ -16,14 +16,30 @@ namespace barbearia.Controllers
             _context = context;
         }
 
-        // Lista todos os agendamentos (admin)
+        // Lista todos os agendamentos (admin), com nome e telefone do cliente
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Agendamento>>> get()
+        public async Task<ActionResult> get()
         {
-            return await _context.Agendamentos
-                .OrderBy(a => a.Data)
-                .ThenBy(a => a.DataHorainicio)
+            var agendamentos = await (
+                from a in _context.Agendamentos
+                join c in _context.clientes on a.Clienteid equals c.id into clientes
+                from c in clientes.DefaultIfEmpty()
+                orderby a.Data, a.DataHorainicio
+                select new
+                {
+                    a.id,
+                    a.Clienteid,
+                    a.Barbeiroid,
+                    a.Servicos,
+                    a.Data,
+                    a.Situacao,
+                    a.DataHorainicio,
+                    ClienteNome = c != null ? c.Nome : "",
+                    ClienteTelefone = c != null ? c.Telefone : "",
+                })
                 .ToListAsync();
+
+            return Ok(agendamentos);
         }
 
         // Lista agendamentos de um cliente específico

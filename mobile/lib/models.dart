@@ -26,6 +26,22 @@ class Appointment {
   final String time;
   final AppointmentStatus status;
 
+  /// Converte o JSON da API (Agedamentocontrolador). O nome e o telefone do
+  /// cliente só vêm na lista completa (admin); nos demais casos usa os do usuário.
+  factory Appointment.fromApi(Map<String, dynamic> json, AppUser user) {
+    return Appointment(
+      id: '${json['id']}',
+      clientName: json['clienteNome'] as String? ?? user.name,
+      phone: json['clienteTelefone'] as String? ?? user.telefone,
+      service: json['servicos'] as String,
+      date: (json['data'] as String).substring(0, 10),
+      time: (json['dataHorainicio'] as String).substring(0, 5),
+      status: json['situacao'] == 'confirmado'
+          ? AppointmentStatus.confirmed
+          : AppointmentStatus.pending,
+    );
+  }
+
   Appointment copyWith({AppointmentStatus? status}) {
     return Appointment(
       id: id,
@@ -37,24 +53,6 @@ class Appointment {
       status: status ?? this.status,
     );
   }
-}
-
-/// Dados enviados pelo formulário de agendamento
-/// (equivalente a `Omit<Appointment, "id" | "status">`).
-class NewAppointment {
-  const NewAppointment({
-    required this.clientName,
-    required this.phone,
-    required this.service,
-    required this.date,
-    required this.time,
-  });
-
-  final String clientName;
-  final String phone;
-  final String service;
-  final String date;
-  final String time;
 }
 
 class AppUser {

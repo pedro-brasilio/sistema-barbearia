@@ -22,7 +22,7 @@ class BookingPage extends StatefulWidget {
 
   final AppUser? user;
   final List<Appointment> appointments;
-  final ValueChanged<NewAppointment> onAddAppointment;
+  final VoidCallback onAddAppointment; // recarrega a lista depois de agendar
   final VoidCallback onNavigateToLogin;
 
   @override
@@ -95,13 +95,7 @@ class _BookingPageState extends State<BookingPage> {
         situacao: 'pendente',
       );
 
-      widget.onAddAppointment(NewAppointment(
-        clientName: user.name,
-        phone: user.telefone,
-        service: _service,
-        date: _date,
-        time: _time,
-      ));
+      widget.onAddAppointment();
 
       if (!mounted) return;
       setState(() {

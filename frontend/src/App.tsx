@@ -1,4 +1,10 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import {
+  listarAgendamentos,
+  listarAgendamentosCliente,
+  confirmarAgendamento,
+  deletarAgendamento,
+} from "./api";
 import { Header } from "./components/Header";
 import { Home } from "./components/Home";
 import { Login } from "./pages/Login";
@@ -30,10 +36,62 @@ interface User {
   isAdmin: boolean;
 }
 
+// Agendamento como vem da API
+interface AgendamentoApi {
+  id: number;
+  servicos: string;
+  data: string;           // "2026-11-10T00:00:00"
+  dataHorainicio: string; // "09:00:00"
+  situacao: string;       // "pendente" | "confirmado" | "cancelado"
+  clienteNome?: string;   // só na lista completa (admin)
+  clienteTelefone?: string;
+}
+
+function toAppointment(a: AgendamentoApi, user: User): Appointment {
+  return {
+    id: String(a.id),
+    clientName: a.clienteNome ?? user.name,
+    phone: a.clienteTelefone ?? user.telefone,
+    service: a.servicos,
+    date: a.data.slice(0, 10),
+    time: a.dataHorainicio.slice(0, 5),
+    status: a.situacao === "confirmado" ? "confirmed" : "pending",
+  };
+}
+
 export default function App() {
   const [view, setView] = useState("home");
   const [user, setUser] = useState<User | null>(null);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+
+  // Busca os agendamentos no banco: todos para o admin, só os do cliente para os demais
+  const buscarAgendamentos = useCallback(async (): Promise<Appointment[]> => {
+    if (!user) return [];
+    const dados: AgendamentoApi[] = user.isAdmin
+      ? await listarAgendamentos()
+      : await listarAgendamentosCliente(user.id);
+    return dados
+      .filter((a) => a.situacao !== "cancelado")
+      .map((a) => toAppointment(a, user));
+  }, [user]);
+
+  const carregarAgendamentos = useCallback(() => {
+    buscarAgendamentos().then(setAppointments).catch(console.error);
+  }, [buscarAgendamentos]);
+
+  // Recarrega ao entrar e a cada troca de tela, para mostrar também
+  // agendamentos feitos pelo app ou em outro navegador
+  useEffect(() => {
+    let ignorar = false; // descarta a resposta se o usuário já trocou de tela ou saiu
+    buscarAgendamentos()
+      .then((lista) => {
+        if (!ignorar) setAppointments(lista);
+      })
+      .catch(console.error);
+    return () => {
+      ignorar = true;
+    };
+  }, [buscarAgendamentos, view]);
 
   const handleNavigate = (target: string) => {
     if (target === "login" && user) {
@@ -43,29 +101,28 @@ export default function App() {
     setView(target);
   };
 
-  const handleAddAppointment = (
-    appointment: Omit<Appointment, "id" | "status">
-  ) => {
-    const newAppointment: Appointment = {
-      ...appointment,
-      id: crypto.randomUUID(),
-      status: "pending",
-    };
-    setAppointments((prev) => [...prev, newAppointment]);
+  const handleUpdateStatus = async (id: string, status: "confirmed" | "pending") => {
+    if (status !== "confirmed") return; // a API só permite confirmar
+    try {
+      await confirmarAgendamento(Number(id));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erro ao confirmar.");
+    }
+    carregarAgendamentos();
   };
 
-  const handleUpdateStatus = (id: string, status: "confirmed" | "pending") => {
-    setAppointments((prev) =>
-      prev.map((apt) => (apt.id === id ? { ...apt, status } : apt))
-    );
-  };
-
-  const handleDeleteAppointment = (id: string) => {
-    setAppointments((prev) => prev.filter((apt) => apt.id !== id));
+  const handleDeleteAppointment = async (id: string) => {
+    try {
+      await deletarAgendamento(Number(id));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erro ao deletar.");
+    }
+    carregarAgendamentos();
   };
 
   const handleLogout = () => {
     setUser(null);
+    setAppointments([]);
     setView("home");
   };
 
@@ -91,7 +148,7 @@ export default function App() {
   <BookingForm
     user={user}
     appointments={appointments}
-    onAddAppointment={handleAddAppointment}
+    onAddAppointment={carregarAgendamentos}
     onNavigateToLogin={() => setView("login")}
   />
 )}

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import 'api.dart';
 import 'models.dart';
 import 'pages/admin_page.dart';
 import 'pages/booking_page.dart';
@@ -33,7 +34,7 @@ class BarbershopApp extends StatelessWidget {
 }
 
 /// Equivalente ao componente App do App.tsx: guarda a tela atual,
-/// o usuário logado e a lista de agendamentos da sessão.
+/// o usuário logado e a lista de agendamentos carregada da API.
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
 
@@ -45,9 +46,41 @@ class _AppShellState extends State<AppShell> {
   AppView _view = AppView.home;
   AppUser? _user;
   List<Appointment> _appointments = [];
-  int _idCounter = 0;
 
-  void _setView(AppView view) => setState(() => _view = view);
+  void _setView(AppView view) {
+    setState(() => _view = view);
+    // Recarrega a cada troca de tela, para mostrar também
+    // agendamentos feitos pelo site ou em outro aparelho.
+    _carregarAgendamentos();
+  }
+
+  /// Busca os agendamentos no banco: todos para o admin, só os do cliente para os demais.
+  Future<void> _carregarAgendamentos() async {
+    final user = _user;
+    if (user == null) return;
+    try {
+      final dados = user.isAdmin
+          ? await Api.listarAgendamentos()
+          : await Api.listarAgendamentosCliente(user.id);
+      // Descarta a resposta se o usuário saiu enquanto carregava.
+      if (!mounted || _user != user) return;
+      setState(() {
+        _appointments = [
+          for (final json in dados as List)
+            if (json['situacao'] != 'cancelado')
+              Appointment.fromApi(json as Map<String, dynamic>, user),
+        ];
+      });
+    } on ApiException catch (err) {
+      debugPrint(err.message);
+    }
+  }
+
+  void _mostrarErro(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
+  }
 
   void _handleNavigate(AppView target) {
     if (target == AppView.login && _user != null) {
@@ -57,37 +90,29 @@ class _AppShellState extends State<AppShell> {
     _setView(target);
   }
 
-  void _handleAddAppointment(NewAppointment appointment) {
-    final newAppointment = Appointment(
-      id: '${DateTime.now().microsecondsSinceEpoch}-${_idCounter++}',
-      clientName: appointment.clientName,
-      phone: appointment.phone,
-      service: appointment.service,
-      date: appointment.date,
-      time: appointment.time,
-      status: AppointmentStatus.pending,
-    );
-    setState(() => _appointments = [..._appointments, newAppointment]);
+  Future<void> _handleUpdateStatus(String id, AppointmentStatus status) async {
+    if (status != AppointmentStatus.confirmed) return; // a API só permite confirmar
+    try {
+      await Api.confirmarAgendamento(int.parse(id));
+    } on ApiException catch (err) {
+      _mostrarErro(err.message);
+    }
+    await _carregarAgendamentos();
   }
 
-  void _handleUpdateStatus(String id, AppointmentStatus status) {
-    setState(() {
-      _appointments = [
-        for (final apt in _appointments)
-          apt.id == id ? apt.copyWith(status: status) : apt,
-      ];
-    });
-  }
-
-  void _handleDeleteAppointment(String id) {
-    setState(() {
-      _appointments = _appointments.where((apt) => apt.id != id).toList();
-    });
+  Future<void> _handleDeleteAppointment(String id) async {
+    try {
+      await Api.deletarAgendamento(int.parse(id));
+    } on ApiException catch (err) {
+      _mostrarErro(err.message);
+    }
+    await _carregarAgendamentos();
   }
 
   void _handleLogout() {
     setState(() {
       _user = null;
+      _appointments = [];
       _view = AppView.home;
     });
   }
@@ -107,13 +132,14 @@ class _AppShellState extends State<AppShell> {
               _user = userData;
               _view = AppView.home;
             });
+            _carregarAgendamentos();
           },
         );
       case AppView.booking:
         return BookingPage(
           user: user,
           appointments: _appointments,
-          onAddAppointment: _handleAddAppointment,
+          onAddAppointment: _carregarAgendamentos,
           onNavigateToLogin: () => _setView(AppView.login),
         );
       case AppView.admin:
