@@ -86,6 +86,8 @@ position:relative;
 padding:16px 40px;
 background:var(--primary);
 border:none;
+/* sem cor definida, o Safari do iPhone pinta o texto do botão de azul */
+color:#050505;
 font-family:'Rajdhani';
 font-weight:600;
 letter-spacing:2px;
