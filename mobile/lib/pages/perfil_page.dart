@@ -99,20 +99,32 @@ class _PerfilPageState extends State<PerfilPage> {
   @override
   Widget build(BuildContext context) {
     final user = widget.user;
+    // Recalculado a cada build; o AppShell reconstrói a tela à meia-noite.
     final today = todayIso();
     final userName = user.name.toLowerCase();
+    bool doUsuario(Appointment a) => a.clientName.toLowerCase() == userName;
+    int porDataEHora(Appointment a, Appointment b) {
+      final data = a.date.compareTo(b.date);
+      return data != 0 ? data : a.time.compareTo(b.time);
+    }
 
-    final proximosAgendamentos = widget.appointments
-        .where((a) =>
-            a.clientName.toLowerCase() == userName &&
-            a.date.compareTo(today) >= 0)
-        .toList();
+    // O administrador vê a agenda da barbearia: os próximos dias em PRÓXIMOS
+    // e, no histórico, só o que está marcado para hoje (renova todo dia).
+    final proximosAgendamentos = user.isAdmin
+        ? (widget.appointments
+            .where((a) => a.date.compareTo(today) > 0)
+            .toList()
+          ..sort(porDataEHora))
+        : widget.appointments
+            .where((a) => doUsuario(a) && a.date.compareTo(today) >= 0)
+            .toList();
 
-    final historicoAgendamentos = widget.appointments
-        .where((a) =>
-            a.clientName.toLowerCase() == userName &&
-            a.date.compareTo(today) < 0)
-        .toList();
+    final historicoAgendamentos = user.isAdmin
+        ? (widget.appointments.where((a) => a.date == today).toList()
+          ..sort(porDataEHora))
+        : widget.appointments
+            .where((a) => doUsuario(a) && a.date.compareTo(today) < 0)
+            .toList();
 
     return ColoredBox(
       color: AppColors.page,
@@ -144,7 +156,11 @@ class _PerfilPageState extends State<PerfilPage> {
             const SizedBox(height: 16),
 
             // MEUS AGENDAMENTOS
-            _buildAppointments(proximosAgendamentos, historicoAgendamentos),
+            _buildAppointments(
+              proximosAgendamentos,
+              historicoAgendamentos,
+              today,
+            ),
           ],
         ),
       ),
@@ -470,7 +486,12 @@ class _PerfilPageState extends State<PerfilPage> {
   Widget _buildAppointments(
     List<Appointment> proximos,
     List<Appointment> historico,
+    String today,
   ) {
+    final isAdmin = widget.user.isAdmin;
+    String statusAgendado(Appointment apt) =>
+        apt.status == AppointmentStatus.confirmed ? 'CONFIRMADO' : 'PENDENTE';
+
     return PanelCard(
       padding: EdgeInsets.zero,
       child: Column(
@@ -501,14 +522,15 @@ class _PerfilPageState extends State<PerfilPage> {
             icon: LucideIcons.circleCheck,
             title: 'PRÓXIMOS',
             showDivider: true,
-            emptyText: 'Nenhum agendamento próximo.',
+            emptyText: isAdmin
+                ? 'Nenhum agendamento nos próximos dias.'
+                : 'Nenhum agendamento próximo.',
             children: [
               for (final apt in proximos)
                 _PerfilAppointmentCard(
                   appointment: apt,
-                  statusLabel: apt.status == AppointmentStatus.confirmed
-                      ? 'CONFIRMADO'
-                      : 'PENDENTE',
+                  showClient: isAdmin,
+                  statusLabel: statusAgendado(apt),
                   onCancel: () => widget.onCancelAppointment(apt.id),
                 ),
             ],
@@ -517,20 +539,31 @@ class _PerfilPageState extends State<PerfilPage> {
           // HISTÓRICO
           _AppointmentsGroup(
             icon: LucideIcons.circleAlert,
-            title: 'HISTÓRICO',
+            title: isAdmin
+                ? 'HISTÓRICO DO DIA · ${today.substring(8, 10)}/${today.substring(5, 7)}'
+                : 'HISTÓRICO',
             showDivider: false,
-            emptyText: 'Nenhum agendamento no histórico.',
+            emptyText: isAdmin
+                ? 'Nenhum agendamento para hoje.'
+                : 'Nenhum agendamento no histórico.',
             children: [
               for (final apt in historico)
-                Opacity(
-                  opacity: 0.6,
-                  child: _PerfilAppointmentCard(
+                if (isAdmin)
+                  _PerfilAppointmentCard(
                     appointment: apt,
-                    statusLabel: apt.status == AppointmentStatus.confirmed
-                        ? 'CONCLUÍDO'
-                        : 'CANCELADO',
+                    showClient: true,
+                    statusLabel: statusAgendado(apt),
+                  )
+                else
+                  Opacity(
+                    opacity: 0.6,
+                    child: _PerfilAppointmentCard(
+                      appointment: apt,
+                      statusLabel: apt.status == AppointmentStatus.confirmed
+                          ? 'CONCLUÍDO'
+                          : 'CANCELADO',
+                    ),
                   ),
-                ),
             ],
           ),
         ],
@@ -603,11 +636,15 @@ class _PerfilAppointmentCard extends StatelessWidget {
   const _PerfilAppointmentCard({
     required this.appointment,
     required this.statusLabel,
+    this.showClient = false,
     this.onCancel,
   });
 
   final Appointment appointment;
   final String statusLabel;
+
+  /// Nome e telefone do cliente (só no perfil do administrador).
+  final bool showClient;
   final VoidCallback? onCancel;
 
   @override
@@ -634,6 +671,22 @@ class _PerfilAppointmentCard extends StatelessWidget {
               letterSpacing: 0.64,
             ),
           ),
+          if (showClient) ...[
+            const SizedBox(height: 6),
+            IconText(
+              icon: LucideIcons.user,
+              text: appointment.phone.isEmpty
+                  ? appointment.clientName
+                  : '${appointment.clientName} · ${appointment.phone}',
+              iconSize: 12,
+              gap: 6,
+              style: AppText.body(
+                14,
+                color: AppColors.grayD4,
+                weight: FontWeight.w500,
+              ),
+            ),
+          ],
           const SizedBox(height: 8),
           IconText(
             icon: LucideIcons.calendar,

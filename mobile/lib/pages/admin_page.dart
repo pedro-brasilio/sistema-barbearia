@@ -5,9 +5,14 @@ import '../models.dart';
 import '../theme.dart';
 import '../utils/dates.dart';
 import '../widgets/common.dart';
+import '../widgets/notification_sender.dart';
+import '../widgets/services_manager.dart';
 
 /// Filtro de status do select (all / confirmed / pending).
 enum StatusFilter { all, confirmed, pending }
+
+/// Abas do painel do administrador.
+enum AdminTab { agendamentos, servicos, notificacoes }
 
 /// Versão mobile do pages/AdminPanel.tsx.
 /// A tabela vira uma lista de linhas empilhadas, com os mesmos dados e ações.
@@ -16,12 +21,18 @@ class AdminPage extends StatefulWidget {
     super.key,
     required this.appointments,
     required this.isAdmin,
+    this.servicos,
+    this.onServicosAlterados,
     required this.onUpdateStatus,
     required this.onDeleteAppointment,
   });
 
   final List<Appointment> appointments;
   final bool isAdmin;
+
+  /// Serviços do banco (null enquanto carrega) e como recarregá-los.
+  final List<Servico>? servicos;
+  final Future<void> Function()? onServicosAlterados;
   final void Function(String id, AppointmentStatus status) onUpdateStatus;
   final ValueChanged<String> onDeleteAppointment;
 
@@ -33,6 +44,7 @@ class _AdminPageState extends State<AdminPage> {
   String _search = '';
   StatusFilter _statusFilter = StatusFilter.all;
   String _dateFilter = '';
+  AdminTab _tab = AdminTab.agendamentos;
 
   bool _matchStatus(Appointment apt) {
     switch (_statusFilter) {
@@ -80,171 +92,255 @@ class _AdminPageState extends State<AdminPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // TÍTULO
-            const FadeSlideIn(
-              child: PageTitle('PAINEL DE AGENDAMENTOS', size: 40),
+            FadeSlideIn(
+              child: PageTitle(
+                switch (_tab) {
+                  AdminTab.agendamentos => 'PAINEL DE AGENDAMENTOS',
+                  AdminTab.servicos => 'SERVIÇOS',
+                  AdminTab.notificacoes => 'NOTIFICAÇÕES',
+                },
+                size: 40,
+              ),
             ),
             const SizedBox(height: 24),
 
-            // MÉTRICAS (2 colunas no celular)
-            FadeSlideIn(
-              delay: const Duration(milliseconds: 100),
-              child: Column(
-                children: [
-                  for (var row = 0; row < 2; row++) ...[
-                    if (row > 0) const SizedBox(height: 16),
-                    IntrinsicHeight(
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          for (var col = 0; col < 2; col++) ...[
-                            if (col > 0) const SizedBox(width: 16),
-                            Expanded(
-                              child: _MetricCard(
-                                value: metrics[row * 2 + col].value,
-                                label: metrics[row * 2 + col].label,
-                                highlight: row * 2 + col == 1,
+            // ABAS (só para o administrador)
+            if (widget.isAdmin) ...[
+              _AdminTabs(
+                current: _tab,
+                onChanged: (tab) => setState(() => _tab = tab),
+              ),
+              const SizedBox(height: 24),
+            ],
+
+            if (widget.isAdmin && _tab == AdminTab.notificacoes)
+              const FadeSlideIn(
+                delay: Duration(milliseconds: 100),
+                child: NotificationSender(),
+              )
+            else if (widget.isAdmin && _tab == AdminTab.servicos)
+              ServicesManager(
+                servicos: widget.servicos,
+                onAlterado: widget.onServicosAlterados ?? () async {},
+              )
+            else ...[
+              // MÉTRICAS (2 colunas no celular)
+              FadeSlideIn(
+                delay: const Duration(milliseconds: 100),
+                child: Column(
+                  children: [
+                    for (var row = 0; row < 2; row++) ...[
+                      if (row > 0) const SizedBox(height: 16),
+                      IntrinsicHeight(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            for (var col = 0; col < 2; col++) ...[
+                              if (col > 0) const SizedBox(width: 16),
+                              Expanded(
+                                child: _MetricCard(
+                                  value: metrics[row * 2 + col].value,
+                                  label: metrics[row * 2 + col].label,
+                                  highlight: row * 2 + col == 1,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // FILTROS
+              FadeSlideIn(
+                delay: const Duration(milliseconds: 200),
+                child: PanelCard(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 20),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              LucideIcons.funnel,
+                              size: 18,
+                              color: AppColors.primary,
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              'FILTROS',
+                              style: AppText.body(
+                                20,
+                                color: AppColors.text,
+                                weight: FontWeight.w600,
+                                letterSpacing: 1.2,
                               ),
                             ),
                           ],
-                        ],
+                        ),
                       ),
-                    ),
-                  ],
-                ],
+                      BoxInput(
+                        hint: 'Buscar por nome ou telefone...',
+                        icon: LucideIcons.search,
+                        iconSize: 16,
+                        iconColor: AppColors.gray6f,
+                        iconLeft: 14,
+                        paddingLeft: 42,
+                        height: 48,
+                        textStyle: AppText.body(15, color: AppColors.text),
+                        hintStyle: AppText.body(15, color: AppColors.gray6f),
+                        onChanged: (value) => setState(() => _search = value),
+                      ),
+                      const SizedBox(height: 16),
+                      SelectBox<StatusFilter>(
+                        value: _statusFilter,
+                        items: const [
+                          (StatusFilter.all, 'Todos os Status'),
+                          (StatusFilter.confirmed, 'Confirmado'),
+                          (StatusFilter.pending, 'Pendente'),
+                        ],
+                        onChanged: (value) =>
+                            setState(() => _statusFilter = value),
+                      ),
+                      const SizedBox(height: 16),
+                      DateBoxField(
+                        value: _dateFilter,
+                        height: 48,
+                        fontSize: 15,
+                        clearable: true,
+                        onChanged: (value) =>
+                            setState(() => _dateFilter = value),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
+              const SizedBox(height: 24),
 
-            // FILTROS
-            FadeSlideIn(
-              delay: const Duration(milliseconds: 200),
-              child: PanelCard(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 20),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            LucideIcons.funnel,
-                            size: 18,
-                            color: AppColors.primary,
-                          ),
-                          const SizedBox(width: 10),
-                          Text(
-                            'FILTROS',
+              // LISTA (tabela no site)
+              FadeSlideIn(
+                delay: const Duration(milliseconds: 300),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.card,
+                    border: Border.all(color: AppColors.primary20),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (filtered.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.all(48),
+                          child: Text(
+                            'Nenhum agendamento encontrado',
+                            textAlign: TextAlign.center,
                             style: AppText.body(
-                              20,
-                              color: AppColors.text,
-                              weight: FontWeight.w600,
-                              letterSpacing: 1.2,
+                              15,
+                              color: AppColors.gray55,
+                              letterSpacing: 0.6,
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                    BoxInput(
-                      hint: 'Buscar por nome ou telefone...',
-                      icon: LucideIcons.search,
-                      iconSize: 16,
-                      iconColor: AppColors.gray6f,
-                      iconLeft: 14,
-                      paddingLeft: 42,
-                      height: 48,
-                      textStyle: AppText.body(15, color: AppColors.text),
-                      hintStyle: AppText.body(15, color: AppColors.gray6f),
-                      onChanged: (value) => setState(() => _search = value),
-                    ),
-                    const SizedBox(height: 16),
-                    SelectBox<StatusFilter>(
-                      value: _statusFilter,
-                      items: const [
-                        (StatusFilter.all, 'Todos os Status'),
-                        (StatusFilter.confirmed, 'Confirmado'),
-                        (StatusFilter.pending, 'Pendente'),
-                      ],
-                      onChanged: (value) =>
-                          setState(() => _statusFilter = value),
-                    ),
-                    const SizedBox(height: 16),
-                    DateBoxField(
-                      value: _dateFilter,
-                      height: 48,
-                      fontSize: 15,
-                      clearable: true,
-                      onChanged: (value) => setState(() => _dateFilter = value),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // LISTA (tabela no site)
-            FadeSlideIn(
-              delay: const Duration(milliseconds: 300),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: AppColors.card,
-                  border: Border.all(color: AppColors.primary20),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (filtered.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.all(48),
+                        )
+                      else
+                        for (var i = 0; i < filtered.length; i++)
+                          _AppointmentRow(
+                            appointment: filtered[i],
+                            isAdmin: widget.isAdmin,
+                            showDivider: i < filtered.length - 1,
+                            onConfirm: () => widget.onUpdateStatus(
+                              filtered[i].id,
+                              AppointmentStatus.confirmed,
+                            ),
+                            onDelete: () =>
+                                widget.onDeleteAppointment(filtered[i].id),
+                          ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 14,
+                        ),
+                        decoration: const BoxDecoration(
+                          border: Border(
+                            top: BorderSide(color: AppColors.primary10),
+                          ),
+                        ),
                         child: Text(
-                          'Nenhum agendamento encontrado',
+                          'Exibindo ${filtered.length} de $total agendamentos',
                           textAlign: TextAlign.center,
                           style: AppText.body(
-                            15,
+                            14,
                             color: AppColors.gray55,
-                            letterSpacing: 0.6,
+                            letterSpacing: 0.56,
                           ),
                         ),
-                      )
-                    else
-                      for (var i = 0; i < filtered.length; i++)
-                        _AppointmentRow(
-                          appointment: filtered[i],
-                          isAdmin: widget.isAdmin,
-                          showDivider: i < filtered.length - 1,
-                          onConfirm: () => widget.onUpdateStatus(
-                            filtered[i].id,
-                            AppointmentStatus.confirmed,
-                          ),
-                          onDelete: () =>
-                              widget.onDeleteAppointment(filtered[i].id),
-                        ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 14,
                       ),
-                      decoration: const BoxDecoration(
-                        border: Border(
-                          top: BorderSide(color: AppColors.primary10),
-                        ),
-                      ),
-                      child: Text(
-                        'Exibindo ${filtered.length} de $total agendamentos',
-                        textAlign: TextAlign.center,
-                        style: AppText.body(
-                          14,
-                          color: AppColors.gray55,
-                          letterSpacing: 0.56,
-                        ),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
+            ],
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Abas AGENDAMENTOS / SERVIÇOS / NOTIFICAÇÕES, um terço da largura cada,
+/// com o ícone em cima do texto.
+class _AdminTabs extends StatelessWidget {
+  const _AdminTabs({required this.current, required this.onChanged});
+
+  final AdminTab current;
+  final ValueChanged<AdminTab> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget tab(AdminTab value, IconData icon, String label) {
+      final active = current == value;
+      final color = active ? AppColors.primary : AppColors.gray7a;
+      return Expanded(
+        child: BoxButton(
+          onPressed: () => onChanged(value),
+          height: 60,
+          background: active ? AppColors.primary15 : Colors.transparent,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 16, color: color),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                maxLines: 1,
+                style: AppText.body(
+                  12,
+                  color: color,
+                  weight: FontWeight.w600,
+                  letterSpacing: 0.72,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        border: Border.all(color: AppColors.primary20),
+      ),
+      child: Row(
+        children: [
+          tab(AdminTab.agendamentos, LucideIcons.calendar, 'AGENDAMENTOS'),
+          tab(AdminTab.servicos, LucideIcons.scissors, 'SERVIÇOS'),
+          tab(AdminTab.notificacoes, LucideIcons.bell, 'NOTIFICAÇÕES'),
+        ],
       ),
     );
   }

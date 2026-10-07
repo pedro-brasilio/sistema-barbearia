@@ -1,5 +1,6 @@
 ﻿using barbearia.dados;
 using barbearia.modelos;
+using barbearia.seguranca;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,10 +11,12 @@ namespace barbearia.Controllers
     public class authcontrolador : ControllerBase
     {
         private readonly Barbeariacontext _context;
+        private readonly Tokens _tokens;
 
-        public authcontrolador(Barbeariacontext context)
+        public authcontrolador(Barbeariacontext context, Tokens tokens)
         {
             _context = context;
+            _tokens = tokens;
         }
 
         [HttpPost("login")]
@@ -36,7 +39,9 @@ namespace barbearia.Controllers
                 cliente.Nome,
                 cliente.Email,
                 cliente.Telefone,
-                cliente.IsAdmin
+                cliente.IsAdmin,
+                // O site e o app mandam o token nas próximas chamadas
+                token = _tokens.Gerar(cliente),
             });
         }
     }

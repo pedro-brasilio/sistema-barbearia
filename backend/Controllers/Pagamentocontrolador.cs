@@ -3,6 +3,8 @@ using barbearia.modelos;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 //using Microsoft.AspNetCore.Http;
+using barbearia.seguranca;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 //using System.Numerics;
@@ -11,6 +13,7 @@ namespace barbearia.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = Tokens.PapelAdmin)]
     public class Pagamentocontrolador : ControllerBase
     {
         private readonly Barbeariacontext _context;

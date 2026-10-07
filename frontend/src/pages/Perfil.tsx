@@ -20,6 +20,7 @@ interface Appointment {
 interface PerfilProps {
   user: { id: number; name: string; email: string; telefone: string; isAdmin: boolean };
   appointments: Appointment[];
+  hoje: string; // AAAA-MM-DD, muda sozinho à meia-noite
   onNavigateBack: () => void;
   onLogout: () => void;
   onCancelAppointment: (id: string) => void;
@@ -28,6 +29,7 @@ interface PerfilProps {
 export function Perfil({
   user,
   appointments,
+  hoje,
   onNavigateBack,
   onLogout,
   onCancelAppointment,
@@ -48,15 +50,21 @@ export function Perfil({
   confirmPassword: "",
 });
 
-  const today = new Date().toISOString().split("T")[0];
+  const porDataEHora = (a: Appointment, b: Appointment) =>
+    a.date.localeCompare(b.date) || a.time.localeCompare(b.time);
+  const doUsuario = (a: Appointment) => a.clientName.toLowerCase() === user.name.toLowerCase();
 
-  const proximosAgendamentos = appointments.filter(
-    (a) => a.clientName.toLowerCase() === user.name.toLowerCase() && a.date >= today
-  );
+  // O administrador vê a agenda da barbearia: os próximos dias em PRÓXIMOS
+  // e, no histórico, só o que está marcado para hoje (renova todo dia)
+  const proximosAgendamentos = user.isAdmin
+    ? appointments.filter((a) => a.date > hoje).sort(porDataEHora)
+    : appointments.filter((a) => doUsuario(a) && a.date >= hoje);
 
-  const historicoAgendamentos = appointments.filter(
-    (a) => a.clientName.toLowerCase() === user.name.toLowerCase() && a.date < today
-  );
+  const historicoAgendamentos = user.isAdmin
+    ? appointments.filter((a) => a.date === hoje).sort(porDataEHora)
+    : appointments.filter((a) => doUsuario(a) && a.date < hoje);
+
+  const [, mesHoje, diaHoje] = hoje.split("-");
 
   const formatDate = (dateStr: string) => {
     const [year, month, day] = dateStr.split("-").map(Number);
@@ -291,6 +299,12 @@ export function Perfil({
                 <div key={apt.id} className="perfil-apt-card">
                   <div className="perfil-apt-info">
                     <span className="perfil-apt-service">{apt.service}</span>
+                    {user.isAdmin && (
+                      <span className="perfil-apt-client">
+                        <User size={12} /> {apt.clientName}
+                        {apt.phone && <> · {apt.phone}</>}
+                      </span>
+                    )}
                     <div className="perfil-apt-details">
                       <span><Calendar size={12} /> {formatDate(apt.date)}</span>
                       <span><Clock size={12} /> {apt.time}</span>
@@ -311,7 +325,9 @@ export function Perfil({
                 </div>
               ))
             ) : (
-              <p className="perfil-empty">Nenhum agendamento próximo.</p>
+              <p className="perfil-empty">
+                {user.isAdmin ? "Nenhum agendamento nos próximos dias." : "Nenhum agendamento próximo."}
+              </p>
             )}
           </div>
 
@@ -319,26 +335,36 @@ export function Perfil({
           <div className="perfil-appointments-group">
             <div className="perfil-group-title">
               <AlertCircle size={14} />
-              HISTÓRICO
+              {user.isAdmin ? `HISTÓRICO DO DIA · ${diaHoje}/${mesHoje}` : "HISTÓRICO"}
             </div>
 
             {historicoAgendamentos.length > 0 ? (
               historicoAgendamentos.map((apt) => (
-                <div key={apt.id} className="perfil-apt-card historico">
+                <div key={apt.id} className={`perfil-apt-card ${user.isAdmin ? "" : "historico"}`}>
                   <div className="perfil-apt-info">
                     <span className="perfil-apt-service">{apt.service}</span>
+                    {user.isAdmin && (
+                      <span className="perfil-apt-client">
+                        <User size={12} /> {apt.clientName}
+                        {apt.phone && <> · {apt.phone}</>}
+                      </span>
+                    )}
                     <div className="perfil-apt-details">
                       <span><Calendar size={12} /> {formatDate(apt.date)}</span>
                       <span><Clock size={12} /> {apt.time}</span>
                     </div>
                   </div>
                   <span className={`perfil-apt-status ${apt.status}`}>
-                    {apt.status === "confirmed" ? "CONCLUÍDO" : "CANCELADO"}
+                    {user.isAdmin
+                      ? apt.status === "confirmed" ? "CONFIRMADO" : "PENDENTE"
+                      : apt.status === "confirmed" ? "CONCLUÍDO" : "CANCELADO"}
                   </span>
                 </div>
               ))
             ) : (
-              <p className="perfil-empty">Nenhum agendamento no histórico.</p>
+              <p className="perfil-empty">
+                {user.isAdmin ? "Nenhum agendamento para hoje." : "Nenhum agendamento no histórico."}
+              </p>
             )}
           </div>
         </div>

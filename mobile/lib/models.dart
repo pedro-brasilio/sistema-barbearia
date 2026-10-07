@@ -70,3 +70,33 @@ class AppUser {
   final String telefone;
   final bool isAdmin;
 }
+
+/// Serviço oferecido, como vem da API (ServicosControlador). O administrador
+/// altera a lista na aba ADMIN > SERVIÇOS; o início e o agendamento leem dela.
+class Servico {
+  const Servico({
+    required this.id,
+    required this.nome,
+    required this.preco,
+    required this.duracaoMinutos,
+  });
+
+  final int id;
+  final String nome;
+  final double preco;
+  final int duracaoMinutos;
+
+  factory Servico.fromApi(Map<String, dynamic> json) {
+    return Servico(
+      id: (json['id'] as num).toInt(),
+      nome: json['nameServico'] as String,
+      preco: (json['preco'] as num).toDouble(),
+      duracaoMinutos: (json['duracaoMinutos'] as num).toInt(),
+    );
+  }
+}
+
+/// "R$ 45" ou "R$ 47,50", igual ao formatarPreco do site.
+String formatPreco(double preco) => preco == preco.roundToDouble()
+    ? 'R\$ ${preco.toInt()}'
+    : 'R\$ ${preco.toStringAsFixed(2).replaceAll('.', ',')}';

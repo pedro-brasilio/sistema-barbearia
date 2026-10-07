@@ -3,21 +3,21 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../models.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 
 /// Versão mobile do components/Home.tsx: hero, serviços e informações.
 class HomePage extends StatelessWidget {
-  const HomePage({super.key, required this.onNavigateToBooking});
+  const HomePage({
+    super.key,
+    required this.servicos,
+    required this.onNavigateToBooking,
+  });
 
+  /// Serviços do banco; null enquanto carrega.
+  final List<Servico>? servicos;
   final VoidCallback onNavigateToBooking;
-
-  static const _services = [
-    (name: 'Corte Clássico', price: r'R$ 45', duration: '30 min'),
-    (name: 'Corte + Barba', price: r'R$ 70', duration: '50 min'),
-    (name: 'Barba Tradicional', price: r'R$ 35', duration: '25 min'),
-    (name: 'Corte Premium', price: r'R$ 80', duration: '60 min'),
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +26,7 @@ class HomePage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _Hero(onNavigateToBooking: onNavigateToBooking),
-          const _ServicesSection(services: _services),
+          _ServicesSection(services: servicos),
           const _InfoSection(),
         ],
       ),
@@ -243,12 +243,10 @@ class _HeroVisual extends StatelessWidget {
 // SERVIÇOS
 // ---------------------------------------------------------------------------
 
-typedef _Service = ({String name, String price, String duration});
-
 class _ServicesSection extends StatelessWidget {
   const _ServicesSection({required this.services});
 
-  final List<_Service> services;
+  final List<Servico>? services;
 
   @override
   Widget build(BuildContext context) {
@@ -274,14 +272,22 @@ class _ServicesSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 32),
-          for (var i = 0; i < services.length; i++) ...[
-            if (i > 0) const SizedBox(height: 20),
-            FadeSlideIn(
-              offset: const Offset(0, 30),
-              delay: Duration(milliseconds: 100 * i),
-              child: _ServiceCard(service: services[i]),
+          if (services case final lista? when lista.isNotEmpty)
+            for (var i = 0; i < lista.length; i++) ...[
+              if (i > 0) const SizedBox(height: 20),
+              FadeSlideIn(
+                offset: const Offset(0, 30),
+                delay: Duration(milliseconds: 100 * i),
+                child: _ServiceCard(service: lista[i]),
+              ),
+            ]
+          else
+            Text(
+              services == null
+                  ? 'Carregando serviços...'
+                  : 'Nenhum serviço disponível no momento.',
+              style: AppText.body(16, color: AppColors.gray9c),
             ),
-          ],
         ],
       ),
     );
@@ -291,7 +297,7 @@ class _ServicesSection extends StatelessWidget {
 class _ServiceCard extends StatelessWidget {
   const _ServiceCard({required this.service});
 
-  final _Service service;
+  final Servico service;
 
   @override
   Widget build(BuildContext context) {
@@ -319,7 +325,7 @@ class _ServiceCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    service.name,
+                    service.nome,
                     style: AppText.body(
                       20,
                       color: AppColors.white,
@@ -335,13 +341,13 @@ class _ServiceCard extends StatelessWidget {
                       runSpacing: 8,
                       children: [
                         Text(
-                          service.price,
+                          formatPreco(service.preco),
                           style:
                               AppText.display(32, letterSpacing: 2, height: 1),
                         ),
                         IconText(
                           icon: LucideIcons.clock,
-                          text: service.duration,
+                          text: '${service.duracaoMinutos} min',
                           iconSize: 14,
                           gap: 4,
                           style: AppText.body(14, color: AppColors.gray9c),

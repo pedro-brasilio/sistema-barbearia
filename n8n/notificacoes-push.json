@@ -1,0 +1,218 @@
+{
+  "name": "Barbershop - Notificações push (admin)",
+  "nodes": [
+    {
+      "id": "a1b2c3d4-0101-4000-8000-000000000001",
+      "name": "Chamada da API",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        300
+      ],
+      "webhookId": "5d0f7c2a-9b41-4e8e-a3c6-1f2b3c4d5e6f",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "barbershop-notificacoes",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "a1b2c3d4-0002-4000-8000-000000000002",
+      "name": "Configurações",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        300
+      ],
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c0000001-0000-4000-8000-000000000002",
+              "name": "FIREBASE_PROJECT_ID",
+              "value": "COLOQUE-O-ID-DO-PROJETO-FIREBASE",
+              "type": "string"
+            },
+            {
+              "id": "c0000001-0000-4000-8000-000000000004",
+              "name": "titulo",
+              "value": "={{ $json.body.titulo }}",
+              "type": "string"
+            },
+            {
+              "id": "c0000001-0000-4000-8000-000000000005",
+              "name": "mensagem",
+              "value": "={{ $json.body.mensagem }}",
+              "type": "string"
+            },
+            {
+              "id": "c0000001-0000-4000-8000-000000000006",
+              "name": "destinatarios",
+              "value": "={{ $json.body.destinatarios }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "a1b2c3d4-0006-4000-8000-000000000006",
+      "name": "Um item por celular",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        440,
+        300
+      ],
+      "parameters": {
+        "fieldToSplitOut": "destinatarios",
+        "options": {}
+      }
+    },
+    {
+      "id": "a1b2c3d4-0007-4000-8000-000000000007",
+      "name": "Envia pelo Firebase (FCM)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        660,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://fcm.googleapis.com/v1/projects/{{ $('Configurações').first().json.FIREBASE_PROJECT_ID }}/messages:send",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  message: {\n    token: $json.token,\n    notification: {\n      title: $('Configurações').first().json.titulo.replaceAll('{nome}', ($json.nome || '').split(' ')[0]),\n      body: $('Configurações').first().json.mensagem.replaceAll('{nome}', ($json.nome || '').split(' ')[0])\n    },\n    android: { priority: 'high' }\n  }\n}) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 20,
+              "batchInterval": 500
+            }
+          },
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "a1b2c3d4-0008-4000-8000-000000000008",
+      "name": "Conta os envios",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Cada item é a resposta do Firebase para um celular\nconst respostas = $input.all();\nconst falhas = respostas.filter((r) => r.json.statusCode !== 200);\nconst primeiraFalha = falhas[0]?.json;\n\nreturn [{\n  json: {\n    total: respostas.length,\n    enviados: respostas.length - falhas.length,\n    falhas: falhas.length,\n    // Ajuda a achar o problema (ex.: credencial do Google errada, app desinstalado)\n    primeiroErro: primeiraFalha\n      ? primeiraFalha.body?.error?.message || `HTTP ${primeiraFalha.statusCode}`\n      : '',\n  },\n}];"
+      }
+    },
+    {
+      "id": "a1b2c3d4-0102-4000-8000-000000000002",
+      "name": "Responde para a API",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1100,
+        300
+      ],
+      "parameters": {
+        "respondWith": "firstIncomingItem",
+        "options": {}
+      }
+    },
+    {
+      "id": "a1b2c3d4-0012-4000-8000-000000000012",
+      "name": "Como configurar",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        -180
+      ],
+      "parameters": {
+        "width": 760,
+        "height": 420,
+        "color": 4,
+        "content": "## Notificações push do Barbershop\n\nO admin escreve o aviso na aba **ADMIN** do site ou do app. A API confere se é o admin, escolhe os clientes pelo filtro e chama este webhook com `titulo`, `mensagem` e `destinatarios`. O n8n manda para cada celular pelo Firebase e devolve quantos deram certo.\n\n**1. Chamada da API**: credencial *Header Auth* `X-Chave-Notificacoes` com a mesma chave de `N8n__Chave` na API.\n\n**2. Configurações**: preencha `FIREBASE_PROJECT_ID`.\n\n**3. Envia pelo Firebase (FCM)**: credencial *Google Service Account API* com o e-mail e a chave privada do JSON da conta de serviço. Ligue *Set up for use in HTTP Request node* e use o escopo `https://www.googleapis.com/auth/firebase.messaging`.\n\n**4.** Publique. Na API, `N8n__WebhookUrl` = endereço de produção deste webhook (`.../webhook/barbershop-notificacoes`).\n\nNa mensagem, `{nome}` vira o primeiro nome do cliente."
+      }
+    }
+  ],
+  "connections": {
+    "Chamada da API": {
+      "main": [
+        [
+          {
+            "node": "Configurações",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configurações": {
+      "main": [
+        [
+          {
+            "node": "Um item por celular",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Um item por celular": {
+      "main": [
+        [
+          {
+            "node": "Envia pelo Firebase (FCM)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Envia pelo Firebase (FCM)": {
+      "main": [
+        [
+          {
+            "node": "Conta os envios",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conta os envios": {
+      "main": [
+        [
+          {
+            "node": "Responde para a API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

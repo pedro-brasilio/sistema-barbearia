@@ -172,6 +172,13 @@ grid-template-columns:repeat(4,1fr);
 gap:20px;
 }
 
+/* Enquanto os serviços carregam da API, ou se não houver nenhum */
+.services-status{
+font-family:'Rajdhani',sans-serif;
+font-size:16px;
+color:#9ca3af;
+}
+
 .service-card{
 position:relative;
 background:#0c0c0c;

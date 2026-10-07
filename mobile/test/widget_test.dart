@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 
 import 'package:barbershop_mobile/app.dart';
+
+import 'api_falsa.dart';
 
 void main() {
   Future<void> abrirApp(WidgetTester tester) async {
@@ -10,8 +13,11 @@ void main() {
     tester.view.devicePixelRatio = 3.0;
     addTearDown(tester.view.reset);
 
-    await tester.pumpWidget(const BarbershopApp());
-    await tester.pumpAndSettle();
+    // Os serviços vêm da API (aqui, a falsa).
+    await http.runWithClient(() async {
+      await tester.pumpWidget(const BarbershopApp());
+      await tester.pumpAndSettle();
+    }, ApiFalsa().cliente);
   }
 
   testWidgets('abre na tela inicial com o hero e os serviços', (tester) async {
@@ -21,6 +27,8 @@ void main() {
     expect(find.text('DESDE 1998'), findsOneWidget);
     expect(find.text('AGENDAR HORÁRIO'), findsOneWidget);
     expect(find.text('Corte Clássico'), findsOneWidget);
+    expect(find.text(r'R$ 45'), findsOneWidget);
+    expect(find.text('20 min'), findsOneWidget);
     expect(find.text('INÍCIO'), findsOneWidget);
     expect(find.text('LOGIN'), findsOneWidget);
     // ADMIN só aparece para administradores.

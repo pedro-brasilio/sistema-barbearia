@@ -4,7 +4,11 @@ import {
   listarAgendamentosCliente,
   confirmarAgendamento,
   deletarAgendamento,
+  listarServicos,
+  definirToken,
+  type Servico,
 } from "./api";
+import { useHoje } from "./utils";
 import { Header } from "./components/Header";
 import { Home } from "./components/Home";
 import { Login } from "./pages/Login";
@@ -63,6 +67,8 @@ export default function App() {
   const [view, setView] = useState("home");
   const [user, setUser] = useState<User | null>(null);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [servicos, setServicos] = useState<Servico[] | null>(null); // null = carregando
+  const hoje = useHoje();
 
   // Busca os agendamentos no banco: todos para o admin, só os do cliente para os demais
   const buscarAgendamentos = useCallback(async (): Promise<Appointment[]> => {
@@ -79,8 +85,22 @@ export default function App() {
     buscarAgendamentos().then(setAppointments).catch(console.error);
   }, [buscarAgendamentos]);
 
-  // Recarrega ao entrar e a cada troca de tela, para mostrar também
-  // agendamentos feitos pelo app ou em outro navegador
+  // Serviços do banco (o admin altera na aba ADMIN > SERVIÇOS)
+  const carregarServicos = useCallback(() => {
+    listarServicos()
+      .then(setServicos)
+      .catch((err) => {
+        console.error(err);
+        setServicos((atual) => atual ?? []);
+      });
+  }, []);
+
+  useEffect(() => {
+    carregarServicos();
+  }, [carregarServicos, view]);
+
+  // Recarrega ao entrar, a cada troca de tela e na virada do dia, para mostrar
+  // também agendamentos feitos pelo app ou em outro navegador
   useEffect(() => {
     let ignorar = false; // descarta a resposta se o usuário já trocou de tela ou saiu
     buscarAgendamentos()
@@ -91,7 +111,7 @@ export default function App() {
     return () => {
       ignorar = true;
     };
-  }, [buscarAgendamentos, view]);
+  }, [buscarAgendamentos, view, hoje]);
 
   const handleNavigate = (target: string) => {
     if (target === "login" && user) {
@@ -121,6 +141,7 @@ export default function App() {
   };
 
   const handleLogout = () => {
+    definirToken(null);
     setUser(null);
     setAppointments([]);
     setView("home");
@@ -131,7 +152,7 @@ export default function App() {
       <Header currentView={view} onNavigate={handleNavigate} user={user} />
       <main>
         {view === "home" && (
-          <Home onNavigateToBooking={() => setView("booking")} />
+          <Home servicos={servicos} onNavigateToBooking={() => setView("booking")} />
         )}
 
         {view === "login" && (
@@ -148,6 +169,8 @@ export default function App() {
   <BookingForm
     user={user}
     appointments={appointments}
+    servicos={servicos}
+    hoje={hoje}
     onAddAppointment={carregarAgendamentos}
     onNavigateToLogin={() => setView("login")}
   />
@@ -157,6 +180,9 @@ export default function App() {
   <AdminPanel
     appointments={appointments}
     isAdmin={user?.isAdmin ?? false}
+    hoje={hoje}
+    servicos={servicos}
+    onServicosAlterados={carregarServicos}
     onUpdateStatus={handleUpdateStatus}
     onDeleteAppointment={handleDeleteAppointment}
   />
@@ -166,6 +192,7 @@ export default function App() {
           <Perfil
             user={user}
             appointments={appointments}
+            hoje={hoje}
             onNavigateBack={() => setView("home")}
             onLogout={handleLogout}
             onCancelAppointment={handleDeleteAppointment}

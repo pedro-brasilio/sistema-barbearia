@@ -3,4 +3,6 @@
     <!-- Mesmo fundo do site (#050507) e do logo (#09090B). -->
     <color name="app_background">#FF050507</color>
     <color name="ic_launcher_background">#FF09090B</color>
+    <!-- Dourado do site (--primary), usado no ícone das notificações. -->
+    <color name="notificacao">#FFD4A373</color>
 </resources>

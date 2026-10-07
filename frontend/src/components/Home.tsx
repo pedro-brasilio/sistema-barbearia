@@ -1,5 +1,7 @@
 import { motion } from "framer-motion";
 import { Scissors, Clock, Star, MapPin, Download } from "lucide-react";
+import type { Servico } from "../api";
+import { formatarPreco } from "../utils";
 
 // APK da release mais recente, publicado pelo GitHub Actions (.github/workflows/app-android.yml).
 // VITE_APK_URL permite testar com outro arquivo, ex.: /barbershop.apk em public/.
@@ -8,17 +10,11 @@ const APK_URL =
   "https://github.com/pedro-brasilio/sistema-barbearia/releases/latest/download/barbershop.apk";
 
 interface HomeProps {
+  servicos: Servico[] | null; // null = carregando
   onNavigateToBooking: () => void;
 }
 
-export function Home({ onNavigateToBooking }: HomeProps) {
-
-  const services = [
-    { name: "Corte Clássico", price: "R$ 45", duration: "30 min" },
-    { name: "Corte + Barba", price: "R$ 70", duration: "50 min" },
-    { name: "Barba Tradicional", price: "R$ 35", duration: "25 min" },
-    { name: "Corte Premium", price: "R$ 80", duration: "60 min" }
-  ];
+export function Home({ servicos, onNavigateToBooking }: HomeProps) {
 
   return (
     <div className="home">
@@ -111,10 +107,16 @@ export function Home({ onNavigateToBooking }: HomeProps) {
           </motion.div>
 
 
+          {!servicos?.length && (
+            <p className="services-status">
+              {servicos ? "Nenhum serviço disponível no momento." : "Carregando serviços..."}
+            </p>
+          )}
+
           <div className="services-grid">
-            {services.map((service, index) => (
+            {servicos?.map((service, index) => (
               <motion.div
-                key={service.name}
+                key={service.id}
                 initial={{ y: 30, opacity: 0 }}
                 whileInView={{ y: 0, opacity: 1 }}
                 transition={{ delay: index * 0.1 }}
@@ -125,17 +127,17 @@ export function Home({ onNavigateToBooking }: HomeProps) {
                 <div className="service-corner" />
 
                 <h4>
-                  {service.name}
+                  {service.nameServico}
                 </h4>
 
                 <div className="service-info">
                   <span className="price">
-                    {service.price}
+                    {formatarPreco(service.preco)}
                   </span>
 
                   <div className="duration">
                     <Clock size={14} />
-                    {service.duration}
+                    {service.duracaoMinutos} min
                   </div>
                 </div>
 

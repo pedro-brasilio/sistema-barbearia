@@ -16,12 +16,16 @@ class BookingPage extends StatefulWidget {
     super.key,
     required this.user,
     required this.appointments,
+    required this.servicos,
     required this.onAddAppointment,
     required this.onNavigateToLogin,
   });
 
   final AppUser? user;
   final List<Appointment> appointments;
+
+  /// Serviços do banco; null enquanto carrega.
+  final List<Servico>? servicos;
   final VoidCallback onAddAppointment; // recarrega a lista depois de agendar
   final VoidCallback onNavigateToLogin;
 
@@ -38,13 +42,6 @@ class _BookingPageState extends State<BookingPage> {
   String _erro = '';
   bool _loading = false;
   Timer? _successTimer;
-
-  static const _services = [
-    (name: 'Corte Clássico', price: r'R$ 45'),
-    (name: 'Corte + Barba', price: r'R$ 70'),
-    (name: 'Barba Tradicional', price: r'R$ 35'),
-    (name: 'Corte Premium', price: r'R$ 80'),
-  ];
 
   static const _timeSlots = [
     '09:00', '09:30', //
@@ -255,15 +252,22 @@ class _BookingPageState extends State<BookingPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const _CardTitle(text: 'SERVIÇO'),
-              for (var i = 0; i < _services.length; i++) ...[
-                if (i > 0) const SizedBox(height: 16),
-                _ServiceOption(
-                  name: _services[i].name,
-                  price: _services[i].price,
-                  selected: _service == _services[i].name,
-                  onTap: () => setState(() => _service = _services[i].name),
+              if (widget.servicos case final servicos? when servicos.isNotEmpty)
+                for (var i = 0; i < servicos.length; i++) ...[
+                  if (i > 0) const SizedBox(height: 16),
+                  _ServiceOption(
+                    name: servicos[i].nome,
+                    price: formatPreco(servicos[i].preco),
+                    selected: _service == servicos[i].nome,
+                    onTap: () => setState(() => _service = servicos[i].nome),
+                  ),
+                ]
+              else
+                _EmptyText(
+                  widget.servicos == null
+                      ? 'Carregando serviços...'
+                      : 'Nenhum serviço disponível no momento.',
                 ),
-              ],
             ],
           ),
         ),

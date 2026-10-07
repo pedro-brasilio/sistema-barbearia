@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Calendar, Clock, User, Check, LogIn } from "lucide-react";
-import { criarAgendamento } from "../api";
+import { criarAgendamento, type Servico } from "../api";
+import { formatarPreco } from "../utils";
 import "../styles/booking.css";
 
 interface Appointment {
@@ -17,6 +18,8 @@ interface Appointment {
 interface BookingFormProps {
   user: { id: number; name: string; email: string; telefone: string; isAdmin: boolean } | null;
   appointments: Appointment[];
+  servicos: Servico[] | null; // null = carregando
+  hoje: string; // AAAA-MM-DD
   onAddAppointment: () => void; // recarrega a lista depois de agendar
   onNavigateToLogin: () => void;
 }
@@ -24,6 +27,8 @@ interface BookingFormProps {
 export function BookingForm({
   user,
   appointments,
+  servicos,
+  hoje,
   onAddAppointment,
   onNavigateToLogin,
 }: BookingFormProps) {
@@ -37,13 +42,6 @@ export function BookingForm({
   const [showSuccess, setShowSuccess] = useState(false);
   const [erro, setErro] = useState("");
   const [loading, setLoading] = useState(false);
-
-  const services = [
-    { name: "Corte Clássico", price: "R$ 45" },
-    { name: "Corte + Barba", price: "R$ 70" },
-    { name: "Barba Tradicional", price: "R$ 35" },
-    { name: "Corte Premium", price: "R$ 80" },
-  ];
 
   const timeSlots = [
     "09:00", "09:30",
@@ -184,20 +182,25 @@ export function BookingForm({
                 {/* CARD 2 — SERVIÇO */}
                 <div className="booking-card">
                   <h3 className="booking-card-title">SERVIÇO</h3>
+                  {!servicos?.length && (
+                    <p className="booking-empty-text">
+                      {servicos ? "Nenhum serviço disponível no momento." : "Carregando serviços..."}
+                    </p>
+                  )}
                   <div className="booking-services-grid">
-                    {services.map((service) => (
+                    {servicos?.map((service) => (
                       <button
-                        key={service.name}
+                        key={service.id}
                         type="button"
-                        onClick={() => setFormData({ ...formData, service: service.name })}
-                        className={`booking-service-btn ${formData.service === service.name ? "selected" : ""}`}
+                        onClick={() => setFormData({ ...formData, service: service.nameServico })}
+                        className={`booking-service-btn ${formData.service === service.nameServico ? "selected" : ""}`}
                       >
                         <div className="booking-service-content">
-                          <span className={`booking-service-name ${formData.service === service.name ? "selected" : ""}`}>
-                            {service.name}
+                          <span className={`booking-service-name ${formData.service === service.nameServico ? "selected" : ""}`}>
+                            {service.nameServico}
                           </span>
-                          <span className={`booking-service-price ${formData.service === service.name ? "selected" : ""}`}>
-                            {service.price}
+                          <span className={`booking-service-price ${formData.service === service.nameServico ? "selected" : ""}`}>
+                            {formatarPreco(service.preco)}
                           </span>
                         </div>
                       </button>
@@ -217,7 +220,7 @@ export function BookingForm({
                       <input
                         type="date"
                         value={formData.date}
-                        min={new Date().toISOString().split("T")[0]}
+                        min={hoje}
                         onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                         className="booking-input"
                         required

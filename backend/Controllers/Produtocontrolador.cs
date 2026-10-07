@@ -1,6 +1,8 @@
 ﻿using barbearia.dados;
 using barbearia.modelos;
 //using Microsoft.AspNetCore.Http;
+using barbearia.seguranca;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 //using System.Numerics;
@@ -27,6 +29,9 @@ namespace barbearia.Controllers
 
 
         [HttpPost]
+
+
+        [Authorize(Roles = Tokens.PapelAdmin)]
         public async Task<ActionResult> Post(produto produtos)
         {
             _context.produtos.Add(produtos);
@@ -36,6 +41,8 @@ namespace barbearia.Controllers
         }
 
         [HttpPut("{id}")]
+
+        [Authorize(Roles = Tokens.PapelAdmin)]
         public async Task<ActionResult> put(int id, produto produto)
         {
             if (id != produto.Id)
@@ -51,6 +58,9 @@ namespace barbearia.Controllers
 
 
         [HttpDelete("{id}")]
+
+
+        [Authorize(Roles = Tokens.PapelAdmin)]
         public async Task<ActionResult> delete(int id)
         {
             var produto = await _context.produtos.FindAsync(id);

@@ -5,6 +5,10 @@
 # Secrets necessários (Settings > Secrets and variables > Actions):
 #   ANDROID_KEYSTORE_BASE64   - keystore PKCS12 (.p12) em base64
 #   ANDROID_KEYSTORE_PASSWORD - senha da keystore (a mesma da chave)
+#
+# Variáveis para as notificações push (Settings > Secrets and variables > Actions > Variables),
+# copiadas do projeto Firebase. Sem elas o APK funciona, só não recebe notificações:
+#   FIREBASE_API_KEY, FIREBASE_APP_ID, FIREBASE_SENDER_ID, FIREBASE_PROJECT_ID
 
 name: App Android
 
@@ -17,6 +21,10 @@ on:
 
 env:
   API_URL: https://barbearia-pim-api.onrender.com/api
+  FIREBASE_API_KEY: ${{ vars.FIREBASE_API_KEY }}
+  FIREBASE_APP_ID: ${{ vars.FIREBASE_APP_ID }}
+  FIREBASE_SENDER_ID: ${{ vars.FIREBASE_SENDER_ID }}
+  FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID }}
 
 jobs:
   apk:
@@ -65,6 +73,10 @@ jobs:
         run: |
           flutter build apk --release \
             --dart-define=API_URL=$API_URL \
+            --dart-define=FIREBASE_API_KEY=$FIREBASE_API_KEY \
+            --dart-define=FIREBASE_APP_ID=$FIREBASE_APP_ID \
+            --dart-define=FIREBASE_SENDER_ID=$FIREBASE_SENDER_ID \
+            --dart-define=FIREBASE_PROJECT_ID=$FIREBASE_PROJECT_ID \
             --build-number=${{ github.run_number }}
           mv build/app/outputs/flutter-apk/app-release.apk barbershop.apk
 

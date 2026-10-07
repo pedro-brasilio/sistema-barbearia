@@ -146,6 +146,60 @@ class PanelCard extends StatelessWidget {
   }
 }
 
+/// Janela de confirmação no visual do app (o window.confirm do site).
+/// Devolve true só se a pessoa tocar em [acao].
+Future<bool> confirmar(
+  BuildContext context, {
+  required String titulo,
+  required String texto,
+  required String acao,
+}) async {
+  final confirmado = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      backgroundColor: AppColors.card,
+      shape: const RoundedRectangleBorder(
+        side: BorderSide(color: AppColors.primary20),
+      ),
+      title: Text(
+        titulo,
+        style: AppText.body(
+          20,
+          color: AppColors.text,
+          weight: FontWeight.w600,
+          letterSpacing: 1.2,
+        ),
+      ),
+      content: Text(texto, style: AppText.body(15, color: AppColors.grayD4)),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: Text(
+            'CANCELAR',
+            style: AppText.body(
+              15,
+              color: AppColors.gray88,
+              weight: FontWeight.w600,
+            ),
+          ),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context, true),
+          child: Text(
+            acao,
+            style: AppText.body(
+              15,
+              color: AppColors.primary,
+              weight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+  return confirmado == true;
+}
+
 /// Caixa de mensagem de erro/sucesso (login-error, perfil-error...).
 class MessageBox extends StatelessWidget {
   const MessageBox.error(this.text, {super.key, this.centered = true})
@@ -438,6 +492,9 @@ class BoxInput extends StatelessWidget {
     this.onChanged,
     this.validator,
     this.suffix,
+    this.minLines,
+    this.maxLines = 1,
+    this.maxLength,
   });
 
   final TextEditingController? controller;
@@ -467,6 +524,13 @@ class BoxInput extends StatelessWidget {
   /// Widget à direita (ex.: botão de mostrar senha). Ocupa [paddingRight].
   final Widget? suffix;
 
+  /// Mais de uma linha vira um textarea (a altura passa a seguir o texto).
+  final int? minLines;
+  final int? maxLines;
+
+  /// Limite de caracteres, com o contador "12/65" embaixo à direita.
+  final int? maxLength;
+
   OutlineInputBorder _border(Color color) => OutlineInputBorder(
         borderRadius: BorderRadius.zero,
         borderSide: BorderSide(color: color),
@@ -476,7 +540,9 @@ class BoxInput extends StatelessWidget {
   Widget build(BuildContext context) {
     final fontSize = textStyle.fontSize ?? 15;
     final style = textStyle.copyWith(height: 1.2);
-    final vertical = ((height - fontSize * 1.2) / 2).clamp(4.0, 40.0);
+    final multiline = maxLines != 1;
+    final vertical =
+        multiline ? 12.0 : ((height - fontSize * 1.2) / 2).clamp(4.0, 40.0);
 
     return TextFormField(
       controller: controller,
@@ -487,10 +553,15 @@ class BoxInput extends StatelessWidget {
       autofillHints: autofillHints,
       onChanged: onChanged,
       validator: validator,
+      minLines: minLines,
+      maxLines: maxLines,
+      maxLength: maxLength,
       style: style,
       cursorColor: AppColors.primary,
-      textAlignVertical: TextAlignVertical.center,
+      textAlignVertical:
+          multiline ? TextAlignVertical.top : TextAlignVertical.center,
       decoration: InputDecoration(
+        counterStyle: AppText.body(13, color: AppColors.gray55),
         isDense: true,
         filled: true,
         fillColor: fillColor,

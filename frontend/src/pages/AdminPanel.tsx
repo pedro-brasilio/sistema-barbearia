@@ -9,7 +9,12 @@ import {
   Check,
   X,
   Search,
+  Bell,
+  Scissors,
 } from 'lucide-react';
+import type { Servico } from '../api';
+import { NotificationSender } from '../components/NotificationSender';
+import { ServicesManager } from '../components/ServicesManager';
 import '../styles/admin.css';
 
 interface Appointment {
@@ -25,6 +30,9 @@ interface Appointment {
 interface AdminPanelProps {
   appointments: Appointment[];
   isAdmin: boolean;
+  hoje: string; // AAAA-MM-DD
+  servicos: Servico[] | null;
+  onServicosAlterados: () => void;
   onUpdateStatus: (id: string, status: 'confirmed' | 'pending') => void;
   onDeleteAppointment: (id: string) => void;
 }
@@ -32,16 +40,19 @@ interface AdminPanelProps {
 export function AdminPanel({
   appointments,
   isAdmin,
+  hoje,
+  servicos,
+  onServicosAlterados,
   onUpdateStatus,
   onDeleteAppointment,
 }: AdminPanelProps) {
+  const [aba, setAba] = useState<'agendamentos' | 'servicos' | 'notificacoes'>('agendamentos');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('');
 
   const total = appointments.length;
-  const today = new Date().toISOString().split('T')[0];
-  const todayCount = appointments.filter((a) => a.date === today).length;
+  const todayCount = appointments.filter((a) => a.date === hoje).length;
   const confirmed = appointments.filter((a) => a.status === 'confirmed').length;
   const pending = appointments.filter((a) => a.status === 'pending').length;
 
@@ -80,155 +91,201 @@ export function AdminPanel({
           animate={{ y: 0, opacity: 1 }}
           className="admin-header"
         >
-          <h2 className="admin-main-title">PAINEL DE AGENDAMENTOS</h2>
+          <h2 className="admin-main-title">
+            {aba === 'agendamentos' ? 'PAINEL DE AGENDAMENTOS' : aba === 'servicos' ? 'SERVIÇOS' : 'NOTIFICAÇÕES'}
+          </h2>
           <div className="admin-main-line" />
         </motion.div>
 
-        {/* MÉTRICAS */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.1 }}
-          className="admin-metrics"
-        >
-          {metrics.map((m, i) => (
-            <div key={i} className={`admin-metric-card ${i === 1 ? 'highlight' : ''}`}>
-              <span className="admin-metric-value">{m.value}</span>
-              <span className="admin-metric-label">{m.label}</span>
-            </div>
-          ))}
-        </motion.div>
-
-        {/* FILTROS */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="admin-filters-card"
-        >
-          <h3 className="admin-filters-title">
-            <Filter className="admin-filters-icon" />
-            FILTROS
-          </h3>
-          <div className="admin-filters-row">
-            <div className="admin-search-wrapper">
-              <Search className="admin-search-icon" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Buscar por nome ou telefone..."
-                className="admin-search-input"
-              />
-            </div>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="admin-select"
+        {/* ABAS (só para o administrador) */}
+        {isAdmin && (
+          <div className="admin-tabs" role="tablist">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={aba === 'agendamentos'}
+              className={`admin-tab ${aba === 'agendamentos' ? 'active' : ''}`}
+              onClick={() => setAba('agendamentos')}
             >
-              <option value="all">Todos os Status</option>
-              <option value="confirmed">Confirmado</option>
-              <option value="pending">Pendente</option>
-            </select>
-            <input
-              type="date"
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-              className="admin-date-input"
-            />
+              <Calendar className="admin-tab-icon" />
+              AGENDAMENTOS
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={aba === 'servicos'}
+              className={`admin-tab ${aba === 'servicos' ? 'active' : ''}`}
+              onClick={() => setAba('servicos')}
+            >
+              <Scissors className="admin-tab-icon" />
+              SERVIÇOS
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={aba === 'notificacoes'}
+              className={`admin-tab ${aba === 'notificacoes' ? 'active' : ''}`}
+              onClick={() => setAba('notificacoes')}
+            >
+              <Bell className="admin-tab-icon" />
+              NOTIFICAÇÕES
+            </button>
           </div>
-        </motion.div>
+        )}
 
-        {/* TABELA */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="admin-table-card"
-        >
-          <table className="admin-table">
-            <thead>
-              <tr className="admin-table-head">
-                <th className="admin-th">CLIENTE</th>
-                <th className="admin-th">TELEFONE</th>
-                <th className="admin-th">SERVIÇO</th>
-                <th className="admin-th">DATA</th>
-                <th className="admin-th">HORÁRIO</th>
-                <th className="admin-th">STATUS</th>
-                {isAdmin && <th className="admin-th admin-th-actions">AÇÕES</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.length > 0 ? (
-                filtered.map((apt) => (
-                  <tr key={apt.id} className="admin-table-row">
-                    <td className="admin-td">
-                      <div className="admin-cell-icon-row">
-                        <User className="admin-row-icon" />
-                        {apt.clientName}
-                      </div>
-                    </td>
-                    <td className="admin-td">
-                      <div className="admin-cell-icon-row">
-                        <Phone className="admin-row-icon" />
-                        {apt.phone}
-                      </div>
-                    </td>
-                    <td className="admin-td">{apt.service}</td>
-                    <td className="admin-td">
-                      <div className="admin-cell-icon-row">
-                        <Calendar className="admin-row-icon" />
-                        {formatDate(apt.date)}
-                      </div>
-                    </td>
-                    <td className="admin-td">
-                      <div className="admin-cell-icon-row">
-                        <Clock className="admin-row-icon" />
-                        {apt.time}
-                      </div>
-                    </td>
-                    <td className="admin-td">
-                      <span className={`admin-status-badge ${apt.status}`}>
-                        {apt.status === 'confirmed' ? 'CONFIRMADO' : 'PENDENTE'}
-                      </span>
-                    </td>
-                    {isAdmin && (
-                      <td className="admin-td admin-td-actions">
-                        {apt.status === 'pending' ? (
-                          <button
-                            onClick={() => onUpdateStatus(apt.id, 'confirmed')}
-                            className="admin-action-btn confirm"
-                            title="Confirmar"
-                          >
-                            <Check className="admin-action-icon" />
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => onDeleteAppointment(apt.id)}
-                            className="admin-action-btn delete"
-                            title="Remover"
-                          >
-                            <X className="admin-action-icon" />
-                          </button>
-                        )}
-                      </td>
-                    )}
+        {isAdmin && aba === 'notificacoes' ? (
+          <NotificationSender />
+        ) : isAdmin && aba === 'servicos' ? (
+          <ServicesManager servicos={servicos} onAlterado={onServicosAlterados} />
+        ) : (
+          <>
+            {/* MÉTRICAS */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.1 }}
+              className="admin-metrics"
+            >
+              {metrics.map((m, i) => (
+                <div key={i} className={`admin-metric-card ${i === 1 ? 'highlight' : ''}`}>
+                  <span className="admin-metric-value">{m.value}</span>
+                  <span className="admin-metric-label">{m.label}</span>
+                </div>
+              ))}
+            </motion.div>
+
+            {/* FILTROS */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="admin-filters-card"
+            >
+              <h3 className="admin-filters-title">
+                <Filter className="admin-filters-icon" />
+                FILTROS
+              </h3>
+              <div className="admin-filters-row">
+                <div className="admin-search-wrapper">
+                  <Search className="admin-search-icon" />
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Buscar por nome ou telefone..."
+                    className="admin-search-input"
+                  />
+                </div>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="admin-select"
+                >
+                  <option value="all">Todos os Status</option>
+                  <option value="confirmed">Confirmado</option>
+                  <option value="pending">Pendente</option>
+                </select>
+                <input
+                  type="date"
+                  value={dateFilter}
+                  onChange={(e) => setDateFilter(e.target.value)}
+                  className="admin-date-input"
+                />
+              </div>
+            </motion.div>
+
+            {/* TABELA */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="admin-table-card"
+            >
+              <table className="admin-table">
+                <thead>
+                  <tr className="admin-table-head">
+                    <th className="admin-th">CLIENTE</th>
+                    <th className="admin-th">TELEFONE</th>
+                    <th className="admin-th">SERVIÇO</th>
+                    <th className="admin-th">DATA</th>
+                    <th className="admin-th">HORÁRIO</th>
+                    <th className="admin-th">STATUS</th>
+                    {isAdmin && <th className="admin-th admin-th-actions">AÇÕES</th>}
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={isAdmin ? 7 : 6} className="admin-empty">
-                    Nenhum agendamento encontrado
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                </thead>
+                <tbody>
+                  {filtered.length > 0 ? (
+                    filtered.map((apt) => (
+                      <tr key={apt.id} className="admin-table-row">
+                        <td className="admin-td">
+                          <div className="admin-cell-icon-row">
+                            <User className="admin-row-icon" />
+                            {apt.clientName}
+                          </div>
+                        </td>
+                        <td className="admin-td">
+                          <div className="admin-cell-icon-row">
+                            <Phone className="admin-row-icon" />
+                            {apt.phone}
+                          </div>
+                        </td>
+                        <td className="admin-td">{apt.service}</td>
+                        <td className="admin-td">
+                          <div className="admin-cell-icon-row">
+                            <Calendar className="admin-row-icon" />
+                            {formatDate(apt.date)}
+                          </div>
+                        </td>
+                        <td className="admin-td">
+                          <div className="admin-cell-icon-row">
+                            <Clock className="admin-row-icon" />
+                            {apt.time}
+                          </div>
+                        </td>
+                        <td className="admin-td">
+                          <span className={`admin-status-badge ${apt.status}`}>
+                            {apt.status === 'confirmed' ? 'CONFIRMADO' : 'PENDENTE'}
+                          </span>
+                        </td>
+                        {isAdmin && (
+                          <td className="admin-td admin-td-actions">
+                            {apt.status === 'pending' ? (
+                              <button
+                                onClick={() => onUpdateStatus(apt.id, 'confirmed')}
+                                className="admin-action-btn confirm"
+                                title="Confirmar"
+                              >
+                                <Check className="admin-action-icon" />
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => onDeleteAppointment(apt.id)}
+                                className="admin-action-btn delete"
+                                title="Remover"
+                              >
+                                <X className="admin-action-icon" />
+                              </button>
+                            )}
+                          </td>
+                        )}
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={isAdmin ? 7 : 6} className="admin-empty">
+                        Nenhum agendamento encontrado
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
 
-          <div className="admin-table-footer">
-            Exibindo {filtered.length} de {total} agendamentos
-          </div>
-        </motion.div>
+              <div className="admin-table-footer">
+                Exibindo {filtered.length} de {total} agendamentos
+              </div>
+            </motion.div>
+          </>
+        )}
 
       </div>
     </div>

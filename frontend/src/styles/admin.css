@@ -350,6 +350,312 @@
 }
 
 /* ============================================ */
+/* ABAS (AGENDAMENTOS / NOTIFICAÇÕES)           */
+/* ============================================ */
+
+.admin-tabs {
+  display: flex;
+  width: fit-content;
+  border: 1px solid rgba(212, 163, 115, 0.2);
+  background: #161616;
+}
+
+.admin-tab {
+  height: 44px;
+  padding: 0 20px;
+  border: none;
+  background: transparent;
+  color: #7a7a7a;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.admin-tab:hover {
+  color: #f5f5f5;
+}
+
+.admin-tab.active {
+  background: rgba(212, 163, 115, 0.15);
+  color: #d4a373;
+}
+
+.admin-tab-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* ============================================ */
+/* ENVIAR NOTIFICAÇÃO                           */
+/* ============================================ */
+
+.admin-notif-hint {
+  font-family: "Rajdhani", sans-serif;
+  font-size: 15px;
+  color: #7a7a7a;
+  margin: -8px 0 24px;
+}
+
+.admin-notif-hint strong {
+  color: #d4a373;
+  font-weight: 600;
+}
+
+.admin-notif-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px 32px;
+  align-items: start;
+}
+
+.admin-notif-campos,
+.admin-notif-envio {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.admin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-field-label {
+  font-family: "Rajdhani", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #7a7a7a;
+}
+
+.admin-input {
+  width: 100%;
+  height: 48px;
+  background: #1a1a1a;
+  border: 1px solid rgba(212, 163, 115, 0.2);
+  padding: 0 16px;
+  color: #f5f5f5;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 15px;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
+}
+
+.admin-input:focus {
+  outline: none;
+  border-color: #d4a373;
+}
+
+.admin-input::placeholder {
+  color: #6f6f6f;
+}
+
+.admin-textarea {
+  height: auto;
+  min-height: 120px;
+  padding: 12px 16px;
+  line-height: 1.4;
+  resize: vertical;
+}
+
+.admin-notif-contador {
+  align-self: flex-end;
+  margin-top: -4px;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 13px;
+  color: #555;
+}
+
+.admin-notif-envio .admin-select {
+  width: 100%;
+}
+
+.admin-notif-publico {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  color: #d4a373;
+}
+
+.admin-notif-publico.vazio {
+  color: #7a7a7a;
+}
+
+.admin-notif-btn {
+  width: 100%;
+  height: 52px;
+  border: none;
+  background: #d4a373;
+  color: #050505;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease, opacity 0.2s ease;
+}
+
+.admin-notif-btn:hover:not(:disabled) {
+  background: #c9934a;
+}
+
+.admin-notif-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.admin-notif-btn-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.admin-notif-msg {
+  font-family: "Rajdhani", sans-serif;
+  font-size: 14px;
+  padding: 10px 16px;
+}
+
+.admin-notif-msg.sucesso {
+  background: rgba(212, 163, 115, 0.15);
+  border: 1px solid rgba(212, 163, 115, 0.4);
+  color: #d4a373;
+}
+
+.admin-notif-msg.erro {
+  background: rgba(200, 60, 60, 0.15);
+  border: 1px solid rgba(200, 60, 60, 0.4);
+  color: #e06060;
+}
+
+/* ============================================ */
+/* SERVIÇOS                                     */
+/* ============================================ */
+
+/* Lista à esquerda, formulário à direita (no celular o formulário vem antes) */
+.admin-servicos {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  grid-template-areas: "lista form";
+  gap: 24px;
+  align-items: start;
+}
+
+.admin-servico-form {
+  grid-area: form;
+  scroll-margin-top: 96px;
+}
+
+.admin-servico-lista {
+  grid-area: lista;
+}
+
+.admin-servico-numeros {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.admin-servico-cancelar {
+  height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: transparent;
+  color: #888;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.admin-servico-cancelar:hover {
+  color: #f5f5f5;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.admin-servico-lista-titulo {
+  padding: 24px 24px 0;
+}
+
+.admin-servico-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background 0.15s ease;
+}
+
+.admin-servico-item:hover {
+  background: rgba(212, 163, 115, 0.04);
+}
+
+/* Serviço aberto no formulário */
+.admin-servico-item.editando {
+  background: rgba(212, 163, 115, 0.08);
+  box-shadow: inset 3px 0 0 #d4a373;
+}
+
+.admin-servico-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.admin-servico-nome {
+  font-family: "Rajdhani", sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  color: #f5f5f5;
+}
+
+.admin-servico-detalhes {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 14px;
+  color: #9ca3af;
+}
+
+.admin-servico-preco {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 22px;
+  letter-spacing: 0.04em;
+  color: #d4a373;
+  line-height: 1;
+}
+
+.admin-servico-acoes {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* ============================================ */
 /* RESPONSIVO                                   */
 /* ============================================ */
 
@@ -364,6 +670,17 @@
 
   .admin-search-wrapper {
     grid-column: 1 / -1;
+  }
+
+  .admin-notif-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-servicos {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "form"
+      "lista";
   }
 }
 
@@ -395,6 +712,29 @@
 
   .admin-filters-title {
     margin-top: 0;
+  }
+
+  /* Abas ocupam a largura toda, com o ícone em cima do texto */
+  .admin-tabs {
+    width: 100%;
+  }
+
+  .admin-tab {
+    flex: 1;
+    flex-direction: column;
+    gap: 4px;
+    height: 60px;
+    padding: 0 4px;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+  }
+
+  .admin-servico-item {
+    padding: 14px 20px;
+  }
+
+  .admin-servico-lista-titulo {
+    padding: 20px 20px 0;
   }
 
   /* Tabela vira um card por agendamento, igual ao app:

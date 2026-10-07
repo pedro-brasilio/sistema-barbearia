@@ -394,6 +394,17 @@
   letter-spacing: 0.04em;
 }
 
+/* Cliente do agendamento (só no perfil do administrador) */
+.perfil-apt-client {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #d4d4d4;
+}
+
 .perfil-apt-details {
   display: flex;
   gap: 16px;

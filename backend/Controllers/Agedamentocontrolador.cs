@@ -1,5 +1,7 @@
 ﻿using barbearia.dados;
 using barbearia.modelos;
+using barbearia.seguranca;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,6 +20,7 @@ namespace barbearia.Controllers
 
         // Lista todos os agendamentos (admin), com nome e telefone do cliente
         [HttpGet]
+        [Authorize(Roles = Tokens.PapelAdmin)]
         public async Task<ActionResult> get()
         {
             var agendamentos = await (
@@ -44,8 +47,12 @@ namespace barbearia.Controllers
 
         // Lista agendamentos de um cliente específico
         [HttpGet("cliente/{clienteId}")]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<Agendamento>>> getByCliente(int clienteId)
         {
+            if (!User.PodeAcessarCliente(clienteId))
+                return StatusCode(403, "sem permissao.");
+
             return await _context.Agendamentos
                 .Where(a => a.Clienteid == clienteId)
                 .OrderByDescending(a => a.Data)
@@ -54,8 +61,14 @@ namespace barbearia.Controllers
 
         // Criar agendamento com limite de 3 por mês
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult> post(Agendamento agendamento)
         {
+            // O cliente só agenda para ele mesmo; o administrador pode agendar para qualquer um
+            if (!User.EhAdmin())
+                agendamento.Clienteid = User.Id();
+            agendamento.id = 0;
+
             // Limite de 3 agendamentos no mês
             var inicio = new DateTime(agendamento.Data.Year, agendamento.Data.Month, 1);
             var fim = inicio.AddMonths(1);
@@ -89,6 +102,7 @@ namespace barbearia.Controllers
 
         // Admin confirma agendamento
         [HttpPatch("{id}/confirmar")]
+        [Authorize(Roles = Tokens.PapelAdmin)]
         public async Task<ActionResult> confirmar(int id)
         {
             var agendamento = await _context.Agendamentos.FindAsync(id);
@@ -103,6 +117,7 @@ namespace barbearia.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = Tokens.PapelAdmin)]
         public async Task<ActionResult> put(int id, Agendamento agendamento)
         {
             if (id != agendamento.id)
@@ -114,13 +129,18 @@ namespace barbearia.Controllers
             return Ok(agendamento);
         }
 
+        // O cliente cancela os dele; o administrador remove qualquer um
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<ActionResult> delete(int id)
         {
             var agendamento = await _context.Agendamentos.FindAsync(id);
 
             if (agendamento == null)
                 return NotFound("agendamento nao encontrado.");
+
+            if (!User.PodeAcessarCliente(agendamento.Clienteid))
+                return StatusCode(403, "sem permissao.");
 
             _context.Agendamentos.Remove(agendamento);
             await _context.SaveChangesAsync();
