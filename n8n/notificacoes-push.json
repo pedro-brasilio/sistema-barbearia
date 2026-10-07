@@ -36,7 +36,7 @@
             {
               "id": "c0000001-0000-4000-8000-000000000002",
               "name": "FIREBASE_PROJECT_ID",
-              "value": "COLOQUE-O-ID-DO-PROJETO-FIREBASE",
+              "value": "barbershop-pim",
               "type": "string"
             },
             {
@@ -107,7 +107,8 @@
             }
           }
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "id": "a1b2c3d4-0008-4000-8000-000000000008",
@@ -120,7 +121,7 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "// Cada item é a resposta do Firebase para um celular\nconst respostas = $input.all();\nconst falhas = respostas.filter((r) => r.json.statusCode !== 200);\nconst primeiraFalha = falhas[0]?.json;\n\nreturn [{\n  json: {\n    total: respostas.length,\n    enviados: respostas.length - falhas.length,\n    falhas: falhas.length,\n    // Ajuda a achar o problema (ex.: credencial do Google errada, app desinstalado)\n    primeiroErro: primeiraFalha\n      ? primeiraFalha.body?.error?.message || `HTTP ${primeiraFalha.statusCode}`\n      : '',\n  },\n}];"
+        "jsCode": "// Cada item é a resposta do Firebase para um celular, na ordem dos destinatários.\n// Se o próprio nó do Firebase quebrar (ex.: credencial do Google errada),\n// chega um item só com o erro, e todos contam como falha.\nconst destinatarios = $('Um item por celular').all();\nconst respostas = $input.all();\nconst enviados = respostas.filter((r) => r.json.statusCode === 200).length;\nconst primeiraFalha = respostas.find((r) => r.json.statusCode !== 200)?.json;\n\n// App desinstalado: o Firebase responde UNREGISTERED e a API apaga o token.\n// Outros 404 (ex.: ID do projeto errado) não apagam nada.\nconst desinstalado = (r) =>\n  (r.json.body?.error?.details ?? []).some((d) => d.errorCode === 'UNREGISTERED');\nconst tokensInvalidos = respostas\n  .map((r, i) => (desinstalado(r) ? destinatarios[i]?.json.token : null))\n  .filter(Boolean);\n\nreturn [{\n  json: {\n    total: destinatarios.length,\n    enviados,\n    falhas: destinatarios.length - enviados,\n    // Aparece no painel do admin para ajudar a achar o problema\n    primeiroErro: primeiraFalha\n      ? primeiraFalha.body?.error?.message ||\n        primeiraFalha.error?.message ||\n        primeiraFalha.error ||\n        `HTTP ${primeiraFalha.statusCode}`\n      : '',\n    tokensInvalidos,\n  },\n}];"
       }
     },
     {

@@ -99,6 +99,17 @@ namespace barbearia.Controllers
             if (resultado == null)
                 return StatusCode(502, "o n8n nao devolveu o resultado do envio. Veja a execucao com erro no n8n.");
 
+            // Celulares em que o app foi desinstalado deixam de receber (e de contar como falha).
+            // Só apaga tokens que foram enviados agora, nunca outros.
+            var enviadosAgora = destinatarios.Select(d => d.token).ToHashSet();
+            var invalidos = (resultado.TokensInvalidos ?? []).Where(enviadosAgora.Contains).ToList();
+            if (invalidos.Count > 0)
+            {
+                await _context.clientes
+                    .Where(c => c.TokenPush != null && invalidos.Contains(c.TokenPush))
+                    .ExecuteUpdateAsync(s => s.SetProperty(c => c.TokenPush, (string?)null));
+            }
+
             return Ok(new
             {
                 total = destinatarios.Count,
@@ -144,7 +155,7 @@ namespace barbearia.Controllers
         }
 
         // Resposta do workflow do n8n
-        private record ResultadoEnvio(int Enviados, int Falhas, string? PrimeiroErro);
+        private record ResultadoEnvio(int Enviados, int Falhas, string? PrimeiroErro, List<string>? TokensInvalidos);
     }
 
     public record EnviarNotificacaoDto(string Titulo, string Mensagem, string Filtro);
