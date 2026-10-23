@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { User, Lock, Mail, ArrowLeft, Phone, Eye, EyeOff } from "lucide-react";
-import { loginCliente, cadastrarCliente } from "../api";
+import { loginCliente, cadastrarCliente, verificarEmail, redefinirSenha } from "../api";
 import "../styles/login.css";
 
 interface LoginProps {
@@ -16,6 +16,16 @@ export function Login({ onNavigateBack, onLoginSuccess }: LoginProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // "Esqueci a senha": passo 1 confere o e-mail, passo 2 define a nova senha
+  const [forgotMode, setForgotMode] = useState(false);
+  const [forgotStep, setForgotStep] = useState<1 | 2>(1);
+  const [sucesso, setSucesso] = useState("");
+  const [forgotData, setForgotData] = useState({
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -23,6 +33,58 @@ export function Login({ onNavigateBack, onLoginSuccess }: LoginProps) {
     name: "",
     phone: "",
   });
+
+  // Volta para a tela de login limpando o fluxo de redefinição
+  const sairDoForgot = () => {
+    setForgotMode(false);
+    setForgotStep(1);
+    setForgotData({ email: "", password: "", confirmPassword: "" });
+    setErro("");
+    setSucesso("");
+    setShowPassword(false);
+    setShowConfirmPassword(false);
+  };
+
+  // Passo 1: confere se existe uma conta com o e-mail digitado
+  const handleVerificarEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErro("");
+    setLoading(true);
+    try {
+      await verificarEmail(forgotData.email);
+      setForgotStep(2);
+    } catch (err: any) {
+      setErro(err.message || "Não encontramos uma conta com esse e-mail.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Passo 2: grava a nova senha
+  const handleRedefinirSenha = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErro("");
+
+    if (forgotData.password !== forgotData.confirmPassword) {
+      setErro("As senhas não coincidem.");
+      return;
+    }
+    if (forgotData.password.length < 6) {
+      setErro("A senha precisa ter pelo menos 6 caracteres.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await redefinirSenha(forgotData.email, forgotData.password);
+      sairDoForgot();
+      setSucesso("Senha redefinida! Agora é só entrar com a nova senha.");
+    } catch (err: any) {
+      setErro(err.message || "Não foi possível redefinir a senha.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,20 +174,114 @@ export function Login({ onNavigateBack, onLoginSuccess }: LoginProps) {
         >
           <div className="login-card">
 
-            <button onClick={onNavigateBack} className="login-back">
+            <button
+              onClick={forgotMode ? sairDoForgot : onNavigateBack}
+              className="login-back"
+            >
               <ArrowLeft size={15} />
               VOLTAR
             </button>
 
             <div className="login-header">
               <h3 className="login-title">
-                {isLoginMode ? "LOGIN" : "CADASTRO"}
+                {forgotMode ? "REDEFINIR SENHA" : isLoginMode ? "LOGIN" : "CADASTRO"}
               </h3>
               <div className="login-line" />
             </div>
 
             {erro && <div className="login-error">{erro}</div>}
+            {sucesso && <div className="login-success">{sucesso}</div>}
 
+            {forgotMode ? (
+              <form
+                onSubmit={forgotStep === 1 ? handleVerificarEmail : handleRedefinirSenha}
+                className="login-form"
+              >
+                {forgotStep === 1 ? (
+                  <>
+                    <p className="forgot-hint">
+                      Digite o e-mail da sua conta. Se encontrarmos, você cria uma nova senha em seguida.
+                    </p>
+                    <div className="input-group">
+                      <label>E-MAIL</label>
+                      <div className="input-box">
+                        <Mail className="input-icon" size={18} />
+                        <input
+                          type="email"
+                          placeholder="seu@email.com"
+                          value={forgotData.email}
+                          onChange={(e) => setForgotData({ ...forgotData, email: e.target.value })}
+                          required
+                        />
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="forgot-hint">
+                      Conta encontrada para <strong>{forgotData.email}</strong>. Agora crie uma nova senha.
+                    </p>
+                    <div className="input-group">
+                      <label>NOVA SENHA</label>
+                      <div className="input-box">
+                        <Lock className="input-icon" size={18} />
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          placeholder="••••••••"
+                          value={forgotData.password}
+                          onChange={(e) => setForgotData({ ...forgotData, password: e.target.value })}
+                          required
+                        />
+                        <button
+                          type="button"
+                          className="input-eye"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="input-group">
+                      <label>CONFIRMAR NOVA SENHA</label>
+                      <div className="input-box">
+                        <Lock className="input-icon" size={18} />
+                        <input
+                          type={showConfirmPassword ? "text" : "password"}
+                          placeholder="••••••••"
+                          value={forgotData.confirmPassword}
+                          onChange={(e) => setForgotData({ ...forgotData, confirmPassword: e.target.value })}
+                          required
+                        />
+                        <button
+                          type="button"
+                          className="input-eye"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        >
+                          {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                <button type="submit" className="login-btn" disabled={loading}>
+                  {loading
+                    ? "AGUARDE..."
+                    : forgotStep === 1
+                      ? "CONTINUAR"
+                      : "REDEFINIR SENHA"}
+                </button>
+
+                <div className="login-divider" />
+
+                <div className="login-toggle">
+                  <p>Lembrou a senha?</p>
+                  <button type="button" onClick={sairDoForgot}>
+                    VOLTAR AO LOGIN
+                  </button>
+                </div>
+              </form>
+            ) : (
             <form onSubmit={handleSubmit} className="login-form">
 
               {!isLoginMode && (
@@ -219,7 +375,19 @@ export function Login({ onNavigateBack, onLoginSuccess }: LoginProps) {
               )}
 
               {isLoginMode && (
-                <div className="forgot-password">Esqueceu a senha?</div>
+                <button
+                  type="button"
+                  className="forgot-password"
+                  onClick={() => {
+                    setForgotMode(true);
+                    setForgotStep(1);
+                    setForgotData({ email: formData.email, password: "", confirmPassword: "" });
+                    setErro("");
+                    setSucesso("");
+                  }}
+                >
+                  Esqueceu a senha?
+                </button>
               )}
 
               <button type="submit" className="login-btn" disabled={loading}>
@@ -237,6 +405,7 @@ export function Login({ onNavigateBack, onLoginSuccess }: LoginProps) {
                   onClick={() => {
                     setIsLoginMode(!isLoginMode);
                     setErro("");
+                    setSucesso("");
                     setShowPassword(false);
                     setShowConfirmPassword(false);
                   }}
@@ -246,6 +415,7 @@ export function Login({ onNavigateBack, onLoginSuccess }: LoginProps) {
               </div>
 
             </form>
+            )}
           </div>
         </motion.div>
 

@@ -27,8 +27,14 @@ class _LoginPageState extends State<LoginPage> {
   bool _isLoginMode = true;
   bool _loading = false;
   String _erro = '';
+  String _sucesso = '';
   bool _showPassword = false;
   bool _showConfirmPassword = false;
+
+  // "Esqueci a senha": passo 1 confere o e-mail, passo 2 define a nova senha.
+  // Reaproveita os campos _email, _password e _confirmPassword.
+  bool _forgotMode = false;
+  int _forgotStep = 1;
 
   final _email = TextEditingController();
   final _password = TextEditingController();
@@ -136,11 +142,114 @@ class _LoginPageState extends State<LoginPage> {
     setState(() {
       _isLoginMode = !_isLoginMode;
       _erro = '';
+      _sucesso = '';
       _showPassword = false;
       _showConfirmPassword = false;
       // Nova chave limpa as mensagens de validação sem apagar o que foi digitado.
       _formKey = GlobalKey<FormState>();
     });
+  }
+
+  // Abre a tela de redefinir senha, mantendo o e-mail já digitado no login.
+  void _entrarForgot() {
+    setState(() {
+      _forgotMode = true;
+      _forgotStep = 1;
+      _password.clear();
+      _confirmPassword.clear();
+      _erro = '';
+      _sucesso = '';
+      _showPassword = false;
+      _showConfirmPassword = false;
+      _formKey = GlobalKey<FormState>();
+    });
+  }
+
+  // Volta para o login limpando o fluxo de redefinição.
+  void _sairForgot() {
+    setState(() {
+      _forgotMode = false;
+      _forgotStep = 1;
+      _password.clear();
+      _confirmPassword.clear();
+      _erro = '';
+      _showPassword = false;
+      _showConfirmPassword = false;
+      _formKey = GlobalKey<FormState>();
+    });
+  }
+
+  // Passo 1: confere se existe uma conta com o e-mail digitado.
+  Future<void> _handleVerificarEmail() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    setState(() {
+      _erro = '';
+      _loading = true;
+    });
+
+    try {
+      await Api.verificarEmail(_email.text);
+      if (mounted) {
+        setState(() {
+          _forgotStep = 2;
+          _formKey = GlobalKey<FormState>();
+        });
+      }
+    } catch (err) {
+      final message = err is ApiException ? err.message : err.toString();
+      if (mounted) {
+        setState(() => _erro = message.isNotEmpty
+            ? message
+            : 'Não encontramos uma conta com esse e-mail.');
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  // Passo 2: grava a nova senha.
+  Future<void> _handleRedefinirSenha() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    setState(() => _erro = '');
+
+    if (_password.text != _confirmPassword.text) {
+      setState(() => _erro = 'As senhas não coincidem.');
+      return;
+    }
+    if (_password.text.length < 6) {
+      setState(() => _erro = 'A senha precisa ter pelo menos 6 caracteres.');
+      return;
+    }
+
+    setState(() => _loading = true);
+
+    try {
+      await Api.redefinirSenha(email: _email.text, novaSenha: _password.text);
+      if (mounted) {
+        setState(() {
+          _forgotMode = false;
+          _forgotStep = 1;
+          _password.clear();
+          _confirmPassword.clear();
+          _erro = '';
+          _showPassword = false;
+          _showConfirmPassword = false;
+          _sucesso = 'Senha redefinida! Agora é só entrar com a nova senha.';
+          _formKey = GlobalKey<FormState>();
+        });
+      }
+    } catch (err) {
+      final message = err is ApiException ? err.message : err.toString();
+      if (mounted) {
+        setState(() => _erro = message.isNotEmpty
+            ? message
+            : 'Não foi possível redefinir a senha.');
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override
@@ -163,7 +272,9 @@ class _LoginPageState extends State<LoginPage> {
             children: [
               Align(
                 alignment: Alignment.centerLeft,
-                child: BackLink(onPressed: widget.onNavigateBack),
+                child: BackLink(
+                  onPressed: _forgotMode ? _sairForgot : widget.onNavigateBack,
+                ),
               ),
               const SizedBox(height: 24),
               // login-header
@@ -171,8 +282,16 @@ class _LoginPageState extends State<LoginPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _isLoginMode ? 'LOGIN' : 'CADASTRO',
-                    style: AppText.display(64, letterSpacing: 3, height: 1),
+                    _forgotMode
+                        ? 'REDEFINIR SENHA'
+                        : _isLoginMode
+                            ? 'LOGIN'
+                            : 'CADASTRO',
+                    style: AppText.display(
+                      _forgotMode ? 46 : 64,
+                      letterSpacing: 3,
+                      height: 1,
+                    ),
                   ),
                   const SizedBox(height: 10),
                   Container(width: 78, height: 4, color: AppColors.primary),
@@ -183,133 +302,17 @@ class _LoginPageState extends State<LoginPage> {
                 MessageBox.error(_erro),
                 const SizedBox(height: 8),
               ],
+              if (_sucesso.isNotEmpty) ...[
+                MessageBox.success(_sucesso),
+                const SizedBox(height: 8),
+              ],
               Form(
                 key: _formKey,
                 child: AutofillGroup(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      if (!_isLoginMode)
-                        _LoginField(
-                          label: 'NOME COMPLETO',
-                          child: _input(
-                            controller: _name,
-                            hint: 'Seu nome',
-                            icon: LucideIcons.user,
-                            validator: _required,
-                            autofillHints: const [AutofillHints.name],
-                          ),
-                        ),
-                      _LoginField(
-                        label: 'E-MAIL',
-                        child: _input(
-                          controller: _email,
-                          hint: 'seu@email.com',
-                          icon: LucideIcons.mail,
-                          keyboardType: TextInputType.emailAddress,
-                          validator: _emailValidator,
-                          autofillHints: const [AutofillHints.email],
-                        ),
-                      ),
-                      if (!_isLoginMode)
-                        _LoginField(
-                          label: 'TELEFONE',
-                          child: _input(
-                            controller: _phone,
-                            hint: '(11) 99999-9999',
-                            icon: LucideIcons.phone,
-                            keyboardType: TextInputType.phone,
-                            validator: _required,
-                            autofillHints: const [AutofillHints.telephoneNumber],
-                          ),
-                        ),
-                      _LoginField(
-                        label: 'SENHA',
-                        child: _input(
-                          controller: _password,
-                          hint: '••••••••',
-                          icon: LucideIcons.lock,
-                          obscure: !_showPassword,
-                          validator: _required,
-                          autofillHints: const [AutofillHints.password],
-                          suffix: EyeToggle(
-                            visible: _showPassword,
-                            onToggle: () =>
-                                setState(() => _showPassword = !_showPassword),
-                          ),
-                        ),
-                      ),
-                      if (!_isLoginMode)
-                        _LoginField(
-                          label: 'CONFIRMAR SENHA',
-                          child: _input(
-                            controller: _confirmPassword,
-                            hint: '••••••••',
-                            icon: LucideIcons.lock,
-                            obscure: !_showConfirmPassword,
-                            validator: _required,
-                            suffix: EyeToggle(
-                              visible: _showConfirmPassword,
-                              onToggle: () => setState(() =>
-                                  _showConfirmPassword = !_showConfirmPassword),
-                            ),
-                          ),
-                        ),
-                      if (_isLoginMode)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 24),
-                          child: Text(
-                            'Esqueceu a senha?',
-                            textAlign: TextAlign.right,
-                            style: AppText.body(12, color: AppColors.gray77),
-                          ),
-                        ),
-                      GoldButton(
-                        label: _loading
-                            ? 'AGUARDE...'
-                            : _isLoginMode
-                                ? 'ENTRAR'
-                                : 'CRIAR CONTA',
-                        onPressed: _loading ? null : _handleSubmit,
-                        foreground: AppColors.black,
-                        textStyle: AppText.system(
-                          14,
-                          weight: FontWeight.w800,
-                          letterSpacing: 4,
-                        ),
-                      ),
-                      const SizedBox(height: 30),
-                      Container(height: 1, color: AppColors.loginBorder),
-                      const SizedBox(height: 30),
-                      // login-toggle
-                      Text(
-                        _isLoginMode
-                            ? 'Não tem uma conta ainda?'
-                            : 'Já tem uma conta?',
-                        textAlign: TextAlign.center,
-                        style: AppText.body(15, color: AppColors.gray77),
-                      ),
-                      const SizedBox(height: 18),
-                      Center(
-                        child: BoxButton(
-                          onPressed: _toggleMode,
-                          borderColor: AppColors.primary,
-                          pressedBackground: AppColors.primary8,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 28,
-                            vertical: 12,
-                          ),
-                          child: Text(
-                            _isLoginMode ? 'CLIQUE AQUI' : 'FAZER LOGIN',
-                            style: AppText.system(
-                              13,
-                              color: AppColors.primary,
-                              letterSpacing: 2,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                    children:
+                        _forgotMode ? _forgotFields() : _loginRegisterFields(),
                   ),
                 ),
               ),
@@ -318,6 +321,232 @@ class _LoginPageState extends State<LoginPage> {
         ),
       ),
     );
+  }
+
+  // Campos do login e do cadastro (o que havia antes da tela de redefinir).
+  List<Widget> _loginRegisterFields() {
+    return [
+      if (!_isLoginMode)
+        _LoginField(
+          label: 'NOME COMPLETO',
+          child: _input(
+            controller: _name,
+            hint: 'Seu nome',
+            icon: LucideIcons.user,
+            validator: _required,
+            autofillHints: const [AutofillHints.name],
+          ),
+        ),
+      _LoginField(
+        label: 'E-MAIL',
+        child: _input(
+          controller: _email,
+          hint: 'seu@email.com',
+          icon: LucideIcons.mail,
+          keyboardType: TextInputType.emailAddress,
+          validator: _emailValidator,
+          autofillHints: const [AutofillHints.email],
+        ),
+      ),
+      if (!_isLoginMode)
+        _LoginField(
+          label: 'TELEFONE',
+          child: _input(
+            controller: _phone,
+            hint: '(11) 99999-9999',
+            icon: LucideIcons.phone,
+            keyboardType: TextInputType.phone,
+            validator: _required,
+            autofillHints: const [AutofillHints.telephoneNumber],
+          ),
+        ),
+      _LoginField(
+        label: 'SENHA',
+        child: _input(
+          controller: _password,
+          hint: '••••••••',
+          icon: LucideIcons.lock,
+          obscure: !_showPassword,
+          validator: _required,
+          autofillHints: const [AutofillHints.password],
+          suffix: EyeToggle(
+            visible: _showPassword,
+            onToggle: () => setState(() => _showPassword = !_showPassword),
+          ),
+        ),
+      ),
+      if (!_isLoginMode)
+        _LoginField(
+          label: 'CONFIRMAR SENHA',
+          child: _input(
+            controller: _confirmPassword,
+            hint: '••••••••',
+            icon: LucideIcons.lock,
+            obscure: !_showConfirmPassword,
+            validator: _required,
+            suffix: EyeToggle(
+              visible: _showConfirmPassword,
+              onToggle: () => setState(
+                  () => _showConfirmPassword = !_showConfirmPassword),
+            ),
+          ),
+        ),
+      if (_isLoginMode)
+        Align(
+          alignment: Alignment.centerRight,
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 24),
+            child: GestureDetector(
+              onTap: _entrarForgot,
+              child: Text(
+                'Esqueceu a senha?',
+                style: AppText.body(12, color: AppColors.gray77),
+              ),
+            ),
+          ),
+        ),
+      GoldButton(
+        label: _loading
+            ? 'AGUARDE...'
+            : _isLoginMode
+                ? 'ENTRAR'
+                : 'CRIAR CONTA',
+        onPressed: _loading ? null : _handleSubmit,
+        foreground: AppColors.black,
+        textStyle: AppText.system(14, weight: FontWeight.w800, letterSpacing: 4),
+      ),
+      const SizedBox(height: 30),
+      Container(height: 1, color: AppColors.loginBorder),
+      const SizedBox(height: 30),
+      // login-toggle
+      Text(
+        _isLoginMode ? 'Não tem uma conta ainda?' : 'Já tem uma conta?',
+        textAlign: TextAlign.center,
+        style: AppText.body(15, color: AppColors.gray77),
+      ),
+      const SizedBox(height: 18),
+      Center(
+        child: BoxButton(
+          onPressed: _toggleMode,
+          borderColor: AppColors.primary,
+          pressedBackground: AppColors.primary8,
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
+          child: Text(
+            _isLoginMode ? 'CLIQUE AQUI' : 'FAZER LOGIN',
+            style:
+                AppText.system(13, color: AppColors.primary, letterSpacing: 2),
+          ),
+        ),
+      ),
+    ];
+  }
+
+  // Campos da tela "Esqueci a senha": passo 1 (e-mail) e passo 2 (nova senha).
+  List<Widget> _forgotFields() {
+    return [
+      if (_forgotStep == 1) ...[
+        Padding(
+          padding: const EdgeInsets.only(bottom: 18),
+          child: Text(
+            'Digite o e-mail da sua conta. Se encontrarmos, você cria uma '
+            'nova senha em seguida.',
+            style: AppText.body(14, color: AppColors.gray77, height: 1.5),
+          ),
+        ),
+        _LoginField(
+          label: 'E-MAIL',
+          child: _input(
+            controller: _email,
+            hint: 'seu@email.com',
+            icon: LucideIcons.mail,
+            keyboardType: TextInputType.emailAddress,
+            validator: _emailValidator,
+            autofillHints: const [AutofillHints.email],
+          ),
+        ),
+      ] else ...[
+        Padding(
+          padding: const EdgeInsets.only(bottom: 18),
+          child: Text.rich(
+            TextSpan(
+              style: AppText.body(14, color: AppColors.gray77, height: 1.5),
+              children: [
+                const TextSpan(text: 'Conta encontrada para '),
+                TextSpan(
+                  text: _email.text,
+                  style:
+                      AppText.body(14, color: AppColors.primary, height: 1.5),
+                ),
+                const TextSpan(text: '. Agora crie uma nova senha.'),
+              ],
+            ),
+          ),
+        ),
+        _LoginField(
+          label: 'NOVA SENHA',
+          child: _input(
+            controller: _password,
+            hint: '••••••••',
+            icon: LucideIcons.lock,
+            obscure: !_showPassword,
+            validator: _required,
+            suffix: EyeToggle(
+              visible: _showPassword,
+              onToggle: () => setState(() => _showPassword = !_showPassword),
+            ),
+          ),
+        ),
+        _LoginField(
+          label: 'CONFIRMAR NOVA SENHA',
+          child: _input(
+            controller: _confirmPassword,
+            hint: '••••••••',
+            icon: LucideIcons.lock,
+            obscure: !_showConfirmPassword,
+            validator: _required,
+            suffix: EyeToggle(
+              visible: _showConfirmPassword,
+              onToggle: () =>
+                  setState(() => _showConfirmPassword = !_showConfirmPassword),
+            ),
+          ),
+        ),
+      ],
+      GoldButton(
+        label: _loading
+            ? 'AGUARDE...'
+            : _forgotStep == 1
+                ? 'CONTINUAR'
+                : 'REDEFINIR SENHA',
+        onPressed: _loading
+            ? null
+            : (_forgotStep == 1 ? _handleVerificarEmail : _handleRedefinirSenha),
+        foreground: AppColors.black,
+        textStyle: AppText.system(14, weight: FontWeight.w800, letterSpacing: 4),
+      ),
+      const SizedBox(height: 30),
+      Container(height: 1, color: AppColors.loginBorder),
+      const SizedBox(height: 30),
+      Text(
+        'Lembrou a senha?',
+        textAlign: TextAlign.center,
+        style: AppText.body(15, color: AppColors.gray77),
+      ),
+      const SizedBox(height: 18),
+      Center(
+        child: BoxButton(
+          onPressed: _sairForgot,
+          borderColor: AppColors.primary,
+          pressedBackground: AppColors.primary8,
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
+          child: Text(
+            'VOLTAR AO LOGIN',
+            style:
+                AppText.system(13, color: AppColors.primary, letterSpacing: 2),
+          ),
+        ),
+      ),
+    ];
   }
 
   Widget _input({

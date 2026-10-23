@@ -65,6 +65,30 @@ export async function loginCliente(dados: {
   return data;
 }
 
+// "Esqueci a senha": confere se existe conta com o e-mail antes de abrir os campos de nova senha
+export async function verificarEmail(email: string) {
+  const res = await fetch(`${BASE_URL}/authcontrolador/verificar-email`, {
+    method: 'POST',
+    headers: cabecalhos(true),
+    body: JSON.stringify({ Email: email }),
+  });
+  const data = await parseResponse(res);
+  if (!res.ok) throw new Error(typeof data === 'string' ? data : 'Não encontramos uma conta com esse e-mail.');
+  return data;
+}
+
+// Grava a nova senha para aquele e-mail
+export async function redefinirSenha(email: string, novaSenha: string) {
+  const res = await fetch(`${BASE_URL}/authcontrolador/redefinir-senha`, {
+    method: 'POST',
+    headers: cabecalhos(true),
+    body: JSON.stringify({ Email: email, NovaSenha: novaSenha }),
+  });
+  const data = await parseResponse(res);
+  if (!res.ok) throw new Error(typeof data === 'string' ? data : 'Não foi possível redefinir a senha.');
+  return data;
+}
+
 export async function listarAgendamentos() {
   const res = await fetch(`${BASE_URL}/Agedamentocontrolador`, { headers: cabecalhos() });
   if (!res.ok) throw new Error(mensagemDeErro(res, null, 'Erro ao buscar agendamentos.'));

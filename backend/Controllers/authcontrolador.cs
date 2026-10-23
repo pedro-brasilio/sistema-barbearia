@@ -44,7 +44,42 @@ namespace barbearia.Controllers
                 token = _tokens.Gerar(cliente),
             });
         }
+
+        // "Esqueci a senha" (site e app): o cliente digita o e-mail e, se existir
+        // uma conta com ele, o próprio cliente define a nova senha na tela seguinte.
+        // Primeiro passo: confere se o e-mail tem conta.
+        [HttpPost("verificar-email")]
+        public async Task<ActionResult> verificarEmail([FromBody] VerificarEmailDto dados)
+        {
+            var existe = await _context.clientes.AnyAsync(c => c.Email == dados.Email);
+
+            if (!existe)
+                return NotFound("nao encontramos uma conta com esse e-mail.");
+
+            return Ok(new { existe = true });
+        }
+
+        // Segundo passo: grava a nova senha para aquele e-mail.
+        [HttpPost("redefinir-senha")]
+        public async Task<ActionResult> redefinirSenha([FromBody] RedefinirSenhaDto dados)
+        {
+            if (string.IsNullOrWhiteSpace(dados.NovaSenha) || dados.NovaSenha.Length < 6)
+                return BadRequest("a senha precisa ter pelo menos 6 caracteres.");
+
+            var cliente = await _context.clientes
+                .FirstOrDefaultAsync(c => c.Email == dados.Email);
+
+            if (cliente == null)
+                return NotFound("nao encontramos uma conta com esse e-mail.");
+
+            cliente.senha = BCrypt.Net.BCrypt.HashPassword(dados.NovaSenha);
+            await _context.SaveChangesAsync();
+
+            return Ok("senha redefinida com sucesso.");
+        }
     }
 
     public record LoginDto(string Email, string senha);
+    public record VerificarEmailDto(string Email);
+    public record RedefinirSenhaDto(string Email, string NovaSenha);
 }

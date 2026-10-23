@@ -145,6 +145,42 @@ class Api {
     return data;
   }
 
+  /// "Esqueci a senha": confere se existe conta com o e-mail antes de abrir
+  /// os campos de nova senha.
+  static Future<dynamic> verificarEmail(String email) async {
+    final res = await _send(http.post(
+      _uri('/authcontrolador/verificar-email'),
+      headers: _jsonHeaders,
+      body: jsonEncode({'Email': email}),
+    ));
+    final data = _parseResponse(res);
+    if (!_ok(res)) {
+      throw ApiException(
+        _errorWithMessage(data, 'Não encontramos uma conta com esse e-mail.'),
+      );
+    }
+    return data;
+  }
+
+  /// Grava a nova senha para aquele e-mail.
+  static Future<dynamic> redefinirSenha({
+    required String email,
+    required String novaSenha,
+  }) async {
+    final res = await _send(http.post(
+      _uri('/authcontrolador/redefinir-senha'),
+      headers: _jsonHeaders,
+      body: jsonEncode({'Email': email, 'NovaSenha': novaSenha}),
+    ));
+    final data = _parseResponse(res);
+    if (!_ok(res)) {
+      throw ApiException(
+        _errorWithMessage(data, 'Não foi possível redefinir a senha.'),
+      );
+    }
+    return data;
+  }
+
   static Future<dynamic> listarAgendamentos() async {
     final res = await _send(
       http.get(_uri('/Agedamentocontrolador'), headers: _headers),

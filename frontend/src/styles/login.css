@@ -238,19 +238,38 @@ body {
 
 /* FORGOT */
 .forgot-password {
-  text-align: right;
+  display: block;
+  margin-left: auto;
+
+  background: none;
+  border: none;
+  padding: 0;
 
   color: #777;
 
+  font-family: inherit;
   font-size: 12px;
 
   margin-top: -5px;
   margin-bottom: 24px;
 
   cursor: pointer;
+  transition: color 0.2s;
 }
 
 .forgot-password:hover {
+  color: #d4a373;
+}
+
+.forgot-hint {
+  color: #999;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 18px;
+}
+
+.forgot-hint strong {
   color: #d4a373;
 }
 
@@ -343,6 +362,17 @@ body {
   background: rgba(200, 60, 60, 0.15);
   border: 1px solid rgba(200, 60, 60, 0.4);
   color: #e06060;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px;
+  padding: 10px 16px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.login-success {
+  background: rgba(70, 170, 90, 0.15);
+  border: 1px solid rgba(70, 170, 90, 0.4);
+  color: #5bbd77;
   font-family: 'Rajdhani', sans-serif;
   font-size: 14px;
   padding: 10px 16px;
