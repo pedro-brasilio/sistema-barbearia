@@ -12,6 +12,8 @@ namespace barbearia.dados
         }
         public DbSet<Agendamento> Agendamentos { get; set; }
 
+        public DbSet<AgendaSemanal> AgendaSemanal { get; set; }
+
         public DbSet<agendamentoservico> agendamentoservicos { get; set; }
 
         public DbSet<barbeiro> barbeiros { get; set; }
@@ -32,6 +34,23 @@ namespace barbearia.dados
             modelBuilder.Entity<Agendamento>()
                 .Property(a => a.Data)
                 .HasColumnType("date");
+
+            modelBuilder.Entity<AgendaSemanal>(entity =>
+            {
+                entity.ToTable("agenda_semanal");
+                entity.HasKey(a => a.AgendamentoId);
+                entity.Property(a => a.AgendamentoId)
+                    .HasColumnName("agendamento_id")
+                    .ValueGeneratedNever();
+                entity.Property(a => a.InicioSemana)
+                    .HasColumnName("inicio_semana")
+                    .HasColumnType("date");
+                entity.HasIndex(a => a.InicioSemana);
+                entity.HasOne<Agendamento>()
+                    .WithOne()
+                    .HasForeignKey<AgendaSemanal>(a => a.AgendamentoId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
 
             modelBuilder.Entity<pagamento>()
                 .Property(p => p.DataPagamento)

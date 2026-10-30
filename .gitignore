@@ -436,3 +436,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+
+# Arquivos locais de verificacao
+tests/agenda_api_run.log
+mobile/.test-temp/

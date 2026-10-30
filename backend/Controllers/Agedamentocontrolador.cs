@@ -45,6 +45,50 @@ namespace barbearia.Controllers
             return Ok(agendamentos);
         }
 
+        // Semana de segunda a domingo. A classificação é feita pelo gatilho AFTER
+        // no banco; aqui apenas consultamos os atendimentos daquela semana.
+        [HttpGet("semana")]
+        [Authorize(Roles = Tokens.PapelAdmin)]
+        public async Task<ActionResult> semana([FromQuery] DateOnly? data)
+        {
+            var referencia = data ?? DateOnly.FromDateTime(DateTime.Today);
+            var diasDesdeSegunda = ((int)referencia.DayOfWeek + 6) % 7;
+            var inicio = referencia.AddDays(-diasDesdeSegunda);
+            if (inicio > DateOnly.MaxValue.AddDays(-6))
+                return BadRequest("A semana consultada excede o intervalo de datas suportado.");
+            var inicioData = inicio.ToDateTime(TimeOnly.MinValue);
+
+            var agendamentos = await (
+                from semana in _context.AgendaSemanal.AsNoTracking()
+                join a in _context.Agendamentos.AsNoTracking()
+                    on semana.AgendamentoId equals a.id
+                join c in _context.clientes.AsNoTracking()
+                    on a.Clienteid equals c.id into clientes
+                from c in clientes.DefaultIfEmpty()
+                where semana.InicioSemana == inicioData && a.Situacao != "cancelado"
+                orderby a.Data, a.DataHorainicio, a.id
+                select new
+                {
+                    a.id,
+                    a.Clienteid,
+                    a.Barbeiroid,
+                    a.Servicos,
+                    a.Data,
+                    a.Situacao,
+                    a.DataHorainicio,
+                    ClienteNome = c != null ? c.Nome : "",
+                    ClienteTelefone = c != null ? c.Telefone : "",
+                })
+                .ToListAsync();
+
+            return Ok(new
+            {
+                InicioSemana = inicio,
+                FimSemana = inicio.AddDays(6),
+                Agendamentos = agendamentos,
+            });
+        }
+
         // Lista agendamentos de um cliente específico
         [HttpGet("cliente/{clienteId}")]
         [Authorize]

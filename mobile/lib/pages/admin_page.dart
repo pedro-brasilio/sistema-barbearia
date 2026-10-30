@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -7,12 +9,13 @@ import '../utils/dates.dart';
 import '../widgets/common.dart';
 import '../widgets/notification_sender.dart';
 import '../widgets/services_manager.dart';
+import '../widgets/weekly_agenda.dart';
 
 /// Filtro de status do select (all / confirmed / pending).
 enum StatusFilter { all, confirmed, pending }
 
 /// Abas do painel do administrador.
-enum AdminTab { agendamentos, servicos, notificacoes }
+enum AdminTab { agendamentos, semanal, servicos, notificacoes }
 
 /// Versão mobile do pages/AdminPanel.tsx.
 /// A tabela vira uma lista de linhas empilhadas, com os mesmos dados e ações.
@@ -33,8 +36,9 @@ class AdminPage extends StatefulWidget {
   /// Serviços do banco (null enquanto carrega) e como recarregá-los.
   final List<Servico>? servicos;
   final Future<void> Function()? onServicosAlterados;
-  final void Function(String id, AppointmentStatus status) onUpdateStatus;
-  final ValueChanged<String> onDeleteAppointment;
+  final FutureOr<void> Function(String id, AppointmentStatus status)
+  onUpdateStatus;
+  final FutureOr<void> Function(String id) onDeleteAppointment;
 
   @override
   State<AdminPage> createState() => _AdminPageState();
@@ -66,13 +70,14 @@ class _AdminPageState extends State<AdminPage> {
     final confirmed = appointments
         .where((a) => a.status == AppointmentStatus.confirmed)
         .length;
-    final pending =
-        appointments.where((a) => a.status == AppointmentStatus.pending).length;
+    final pending = appointments
+        .where((a) => a.status == AppointmentStatus.pending)
+        .length;
 
     final filtered = appointments.where((apt) {
       final matchSearch =
           apt.clientName.toLowerCase().contains(_search.toLowerCase()) ||
-              apt.phone.contains(_search);
+          apt.phone.contains(_search);
       final matchDate = _dateFilter.isEmpty || apt.date == _dateFilter;
       return matchSearch && _matchStatus(apt) && matchDate;
     }).toList();
@@ -93,14 +98,12 @@ class _AdminPageState extends State<AdminPage> {
           children: [
             // TÍTULO
             FadeSlideIn(
-              child: PageTitle(
-                switch (_tab) {
-                  AdminTab.agendamentos => 'PAINEL DE AGENDAMENTOS',
-                  AdminTab.servicos => 'SERVIÇOS',
-                  AdminTab.notificacoes => 'NOTIFICAÇÕES',
-                },
-                size: 40,
-              ),
+              child: PageTitle(switch (_tab) {
+                AdminTab.agendamentos => 'PAINEL DE AGENDAMENTOS',
+                AdminTab.semanal => 'AGENDA SEMANAL',
+                AdminTab.servicos => 'SERVIÇOS',
+                AdminTab.notificacoes => 'NOTIFICAÇÕES',
+              }, size: 40),
             ),
             const SizedBox(height: 24),
 
@@ -113,7 +116,13 @@ class _AdminPageState extends State<AdminPage> {
               const SizedBox(height: 24),
             ],
 
-            if (widget.isAdmin && _tab == AdminTab.notificacoes)
+            if (widget.isAdmin && _tab == AdminTab.semanal)
+              WeeklyAgenda(
+                revision: widget.appointments,
+                onUpdateStatus: widget.onUpdateStatus,
+                onDeleteAppointment: widget.onDeleteAppointment,
+              )
+            else if (widget.isAdmin && _tab == AdminTab.notificacoes)
               const FadeSlideIn(
                 delay: Duration(milliseconds: 100),
                 child: NotificationSender(),
@@ -291,8 +300,7 @@ class _AdminPageState extends State<AdminPage> {
   }
 }
 
-/// Abas AGENDAMENTOS / SERVIÇOS / NOTIFICAÇÕES, um terço da largura cada,
-/// com o ícone em cima do texto.
+/// Abas em duas linhas para manter os rótulos legíveis em telas pequenas.
 class _AdminTabs extends StatelessWidget {
   const _AdminTabs({required this.current, required this.onChanged});
 
@@ -335,11 +343,20 @@ class _AdminTabs extends StatelessWidget {
         color: AppColors.card,
         border: Border.all(color: AppColors.primary20),
       ),
-      child: Row(
+      child: Column(
         children: [
-          tab(AdminTab.agendamentos, LucideIcons.calendar, 'AGENDAMENTOS'),
-          tab(AdminTab.servicos, LucideIcons.scissors, 'SERVIÇOS'),
-          tab(AdminTab.notificacoes, LucideIcons.bell, 'NOTIFICAÇÕES'),
+          Row(
+            children: [
+              tab(AdminTab.agendamentos, LucideIcons.calendar, 'AGENDAMENTOS'),
+              tab(AdminTab.semanal, LucideIcons.calendar, 'AGENDA SEMANAL'),
+            ],
+          ),
+          Row(
+            children: [
+              tab(AdminTab.servicos, LucideIcons.scissors, 'SERVIÇOS'),
+              tab(AdminTab.notificacoes, LucideIcons.bell, 'NOTIFICAÇÕES'),
+            ],
+          ),
         ],
       ),
     );

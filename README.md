@@ -11,6 +11,7 @@ O sistema foi pensado para apoiar a organização de uma barbearia, centralizand
 - Cadastro de serviços, com preço e duração, pela aba ADMIN > SERVIÇOS (o início e o agendamento leem a lista do banco);
 - No perfil do administrador, "Meus agendamentos" mostra os próximos agendamentos da barbearia e o histórico do dia, que renova à meia-noite;
 - Controle de agendamentos;
+- Agenda semanal do administrador, classificada automaticamente por trigger AFTER no PostgreSQL;
 - Registro da situação dos agendamentos: pendente, confirmado ou cancelado;
 - Associação de serviços aos agendamentos;
 - Cadastro e controle básico de estoque de produtos;
@@ -47,7 +48,7 @@ sistema-barbearia/
 
 ## Estrutura do banco de dados
 
-O banco de dados `BarbeariaDB` possui as seguintes tabelas:
+O banco PostgreSQL (chamado `barbearia` na configuração local e no Blueprint) possui as seguintes tabelas:
 
 - `clientes`
 - `barbeiros`
@@ -57,7 +58,7 @@ O banco de dados `BarbeariaDB` possui as seguintes tabelas:
 - `produtos`
 - `pagamentos`
 
-O script também inclui dados iniciais de um barbeiro padrão e serviços para teste.
+As migrations criam o esquema e o inicializador da API insere um barbeiro padrão e serviços de demonstração. O arquivo `Barbearia.sql` é legado em SQL Server, apenas para referência histórica.
 
 ## Como executar
 
@@ -69,7 +70,7 @@ O banco é PostgreSQL. A forma mais simples de ter um localmente é com Docker:
 docker run -d --name barbearia-pg -p 5432:5432 -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=barbearia postgres:17
 ```
 
-As tabelas, o barbeiro padrão e os serviços são criados automaticamente quando a API inicia (migrations do Entity Framework). Em desenvolvimento também é criado o administrador `admin@barbearia.com` / `admin123` (definido em `backend/appsettings.Development.json`).
+As tabelas, o barbeiro padrão e os serviços são criados automaticamente quando a API inicia (migrations do Entity Framework). A migration da agenda semanal instala a tabela, a procedure, a função e o trigger e classifica também os agendamentos anteriores. O [script PostgreSQL operacional](database/Barbearia.PostgreSQL.sql) corresponde ao esquema da revisão. Em desenvolvimento também é criado o administrador `admin@barbearia.com` / `admin123` (definido em `backend/appsettings.Development.json`).
 
 O arquivo `Barbearia.sql` é a modelagem original em SQL Server e fica no repositório apenas como referência.
 
@@ -178,6 +179,16 @@ Configuração (uma vez):
    - rodando no PC: o endereço já vem em `appsettings.Development.json` (`http://localhost:5678/...`); a chave fica nos *user secrets*, fora do repositório: `cd backend` e `dotnet user-secrets set "N8n:Chave" "SUA-CHAVE"`.
 
 Para o celular receber, o cliente precisa entrar na conta pelo app pelo menos uma vez e permitir as notificações. Com o app aberto, o aviso aparece numa barra na parte de baixo da tela; com ele fechado, aparece na barra de notificações do Android.
+
+## Agenda semanal e trigger AFTER
+
+Ao salvar um agendamento, o PostgreSQL o classifica automaticamente na semana de segunda-feira a domingo. A agenda guarda somente a referência ao atendimento e o início da semana; os dados do cliente e do serviço permanecem nas tabelas originais. Mudanças de data/situação são sincronizadas, cancelamentos saem da agenda e exclusões removem a referência por cascata.
+
+A consulta `GET /api/Agedamentocontrolador/semana?data=2026-10-30` devolve o intervalo e os atendimentos da semana e exige administrador. A procedure `sp_atualizar_agenda_semanal` pode reconciliar um agendamento ou todos os registros. Veja os [objetos SQL, eventos e exemplos](docs/pim/agenda_semanal.md).
+
+## Documentação para o PIM IV
+
+Os [complementos acadêmicos em `docs/pim/`](docs/pim/README.md) relacionam requisitos aos arquivos do projeto, detalham o modelo de dados e a integração web/mobile e apresentam um plano de revisão com backlog e Kanban. O planejamento é proposto para esta revisão; não representa histórico de sprints anteriores. As [pendências do grupo](docs/pim/pendencias_grupo.md) identificam informações de organização, pesquisa e viabilidade que precisam ser confirmadas pelos integrantes.
 
 ## Autores
 

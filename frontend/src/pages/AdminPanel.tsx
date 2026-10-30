@@ -15,6 +15,7 @@ import {
 import type { Servico } from '../api';
 import { NotificationSender } from '../components/NotificationSender';
 import { ServicesManager } from '../components/ServicesManager';
+import { WeeklyAgenda } from '../components/WeeklyAgenda';
 import '../styles/admin.css';
 
 interface Appointment {
@@ -33,8 +34,8 @@ interface AdminPanelProps {
   hoje: string; // AAAA-MM-DD
   servicos: Servico[] | null;
   onServicosAlterados: () => void;
-  onUpdateStatus: (id: string, status: 'confirmed' | 'pending') => void;
-  onDeleteAppointment: (id: string) => void;
+  onUpdateStatus: (id: string, status: 'confirmed' | 'pending') => Promise<void>;
+  onDeleteAppointment: (id: string) => Promise<void>;
 }
 
 export function AdminPanel({
@@ -46,7 +47,7 @@ export function AdminPanel({
   onUpdateStatus,
   onDeleteAppointment,
 }: AdminPanelProps) {
-  const [aba, setAba] = useState<'agendamentos' | 'servicos' | 'notificacoes'>('agendamentos');
+  const [aba, setAba] = useState<'agendamentos' | 'semanal' | 'servicos' | 'notificacoes'>('agendamentos');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('');
@@ -92,7 +93,7 @@ export function AdminPanel({
           className="admin-header"
         >
           <h2 className="admin-main-title">
-            {aba === 'agendamentos' ? 'PAINEL DE AGENDAMENTOS' : aba === 'servicos' ? 'SERVIÇOS' : 'NOTIFICAÇÕES'}
+            {aba === 'agendamentos' ? 'PAINEL DE AGENDAMENTOS' : aba === 'semanal' ? 'AGENDA SEMANAL' : aba === 'servicos' ? 'SERVIÇOS' : 'NOTIFICAÇÕES'}
           </h2>
           <div className="admin-main-line" />
         </motion.div>
@@ -109,6 +110,11 @@ export function AdminPanel({
             >
               <Calendar className="admin-tab-icon" />
               AGENDAMENTOS
+            </button>
+            <button type="button" role="tab" aria-selected={aba === 'semanal'}
+              className={`admin-tab ${aba === 'semanal' ? 'active' : ''}`}
+              onClick={() => setAba('semanal')}>
+              <Calendar className="admin-tab-icon" /> AGENDA SEMANAL
             </button>
             <button
               type="button"
@@ -133,7 +139,9 @@ export function AdminPanel({
           </div>
         )}
 
-        {isAdmin && aba === 'notificacoes' ? (
+        {isAdmin && aba === 'semanal' ? (
+          <WeeklyAgenda hoje={hoje} revision={appointments} onUpdateStatus={onUpdateStatus} onDeleteAppointment={onDeleteAppointment} />
+        ) : isAdmin && aba === 'notificacoes' ? (
           <NotificationSender />
         ) : isAdmin && aba === 'servicos' ? (
           <ServicesManager servicos={servicos} onAlterado={onServicosAlterados} />
