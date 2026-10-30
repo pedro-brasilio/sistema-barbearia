@@ -9,4 +9,3 @@ DELETE FROM "__EFMigrationsHistory"
 WHERE "MigrationId" = '20261030183451_AgendaSemanal';
 
 COMMIT;
-
