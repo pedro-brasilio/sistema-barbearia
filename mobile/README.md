@@ -81,8 +81,9 @@ Use o perfil **http** da API. No perfil https, o backend redireciona para `https
 ## Comportamento mantido do site
 
 - Login e cadastro chamam `authcontrolador/login` e `Clientecontrolador/cadastro`.
-- O agendamento chama `Agedamentocontrolador` e depois entra na lista da sessão.
-- A lista de agendamentos fica só na memória enquanto o app está aberto, como no React. Confirmar, remover e cancelar mudam só essa lista.
+- A criação chama `Agedamentocontrolador`; a confirmação usa `PATCH /{id}/confirmar` e a exclusão/cancelamento usa `DELETE /{id}`. Essas operações são persistidas pela API no PostgreSQL.
+- A lista exibida fica em memória, mas é recarregada da API após as alterações, ao autenticar, ao trocar de tela e na virada do dia. Alterações de outro aparelho aparecem na próxima consulta; não há atualização em tempo real por WebSocket.
+- O administrador consulta todos os agendamentos; o cliente consulta os próprios registros. A autorização é aplicada na API.
 - O ADMIN só aparece para usuários com `IsAdmin = true`.
 
 ## Testes
@@ -90,6 +91,10 @@ Use o perfil **http** da API. No perfil https, o backend redireciona para `https
 ```bash
 flutter test
 ```
+
+Os testes de widgets em `test/` usam respostas simuladas em parte dos cenários. Eles verificam a interface e as requisições esperadas, sem comprovar por si só a integração com o banco real. Registre a saída de `flutter test` para demonstrar a execução na versão entregue.
+
+Veja também a [matriz de evidências do PIM](../docs/pim/evidencias_codigo.md).
 
 ## Problemas comuns
 

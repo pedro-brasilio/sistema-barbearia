@@ -221,3 +221,28 @@ export async function enviarNotificacao(dados: {
   if (!res.ok) throw new Error(mensagemDeErro(res, data, 'Erro ao enviar a notificação.'));
   return data as { total: number; enviados: number; falhas: number; erro: string };
 }
+
+
+export interface AgendaSemanalApi {
+  inicioSemana: string;
+  fimSemana: string;
+  agendamentos: {
+    id: number;
+    clienteNome: string;
+    clienteTelefone: string;
+    servicos: string;
+    data: string;
+    dataHorainicio: string;
+    situacao: string;
+  }[];
+}
+
+// Apenas o administrador pode consultar a agenda mantida pelo gatilho do banco.
+export async function listarAgendaSemanal(data: string): Promise<AgendaSemanalApi> {
+  const res = await fetch(`${BASE_URL}/Agedamentocontrolador/semana?data=${encodeURIComponent(data)}`, {
+    headers: cabecalhos(),
+  });
+  const body = await parseResponse(res);
+  if (!res.ok) throw new Error(mensagemDeErro(res, body, 'Erro ao buscar a agenda semanal.'));
+  return body;
+}

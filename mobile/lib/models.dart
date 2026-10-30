@@ -28,11 +28,11 @@ class Appointment {
 
   /// Converte o JSON da API (Agedamentocontrolador). O nome e o telefone do
   /// cliente só vêm na lista completa (admin); nos demais casos usa os do usuário.
-  factory Appointment.fromApi(Map<String, dynamic> json, AppUser user) {
+  factory Appointment.fromApi(Map<String, dynamic> json, [AppUser? user]) {
     return Appointment(
       id: '${json['id']}',
-      clientName: json['clienteNome'] as String? ?? user.name,
-      phone: json['clienteTelefone'] as String? ?? user.telefone,
+      clientName: json['clienteNome'] as String? ?? user?.name ?? '',
+      phone: json['clienteTelefone'] as String? ?? user?.telefone ?? '',
       service: json['servicos'] as String,
       date: (json['data'] as String).substring(0, 10),
       time: (json['dataHorainicio'] as String).substring(0, 5),

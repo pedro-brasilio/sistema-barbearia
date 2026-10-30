@@ -193,6 +193,25 @@ class Api {
     return _parseResponse(res);
   }
 
+  /// Agenda semanal mantida pelo gatilho PostgreSQL. A API exige administrador.
+  static Future<dynamic> listarAgendaSemanal(String data) async {
+    final res = await _send(
+      http.get(
+        _uri(
+          '/Agedamentocontrolador/semana?data=${Uri.encodeQueryComponent(data)}',
+        ),
+        headers: _headers,
+      ),
+    );
+    final body = _parseResponse(res);
+    if (!_ok(res)) {
+      throw ApiException(
+        _mensagemDeErro(res, body, 'Erro ao buscar a agenda semanal.'),
+      );
+    }
+    return body;
+  }
+
   static Future<dynamic> listarAgendamentosCliente(int clienteId) async {
     final res = await _send(
       http.get(
