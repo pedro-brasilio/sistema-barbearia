@@ -23,4 +23,11 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.0.0" />
   </ItemGroup>
 
+  <!-- Dependências indiretas fixadas em versões sem vulnerabilidades conhecidas
+       (as que vinham do Swashbuckle e do EF Tools tinham avisos de segurança) -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.OpenApi" Version="2.13.0" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.15" />
+  </ItemGroup>
+
 </Project>

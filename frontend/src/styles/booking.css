@@ -258,6 +258,13 @@
   color: #050505;
 }
 
+/* Horário de hoje que já passou */
+.booking-time-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  border-color: rgba(212, 163, 115, 0.1);
+}
+
 /* ============================================ */
 /* BOTÃO CONFIRMAR                              */
 /* ============================================ */

@@ -49,8 +49,12 @@ namespace barbearia.Controllers
         [HttpPost("cadastro")]
         public async Task<ActionResult> cadastro(cliente dadoscadastro)
         {
-            // Verifica se email já existe
-            if (await _context.clientes.AnyAsync(c => c.Email == dadoscadastro.Email))
+            var erro = Validacao.DadosCliente(dadoscadastro) ?? Validacao.Senha(dadoscadastro.senha);
+            if (erro != null)
+                return BadRequest(erro);
+
+            // Verifica se email já existe (sem diferenciar maiúsculas)
+            if (await _context.clientes.AnyAsync(c => c.Email.ToLower() == dadoscadastro.Email))
                 return BadRequest("email ja cadastrado.");
 
             // O cadastro sempre cria um cliente comum, com id gerado pelo banco
@@ -89,7 +93,11 @@ namespace barbearia.Controllers
             if (cliente == null)
                 return NotFound("cliente nao encontrado.");
 
-            if (await _context.clientes.AnyAsync(c => c.Email == dados.Email && c.id != id))
+            var erro = Validacao.DadosCliente(dados, telefoneOpcional: cliente.IsAdmin);
+            if (erro != null)
+                return BadRequest(erro);
+
+            if (await _context.clientes.AnyAsync(c => c.Email.ToLower() == dados.Email && c.id != id))
                 return BadRequest("email ja cadastrado.");
 
             cliente.Nome = dados.Nome;

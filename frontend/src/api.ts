@@ -65,24 +65,24 @@ export async function loginCliente(dados: {
   return data;
 }
 
-// "Esqueci a senha": confere se existe conta com o e-mail antes de abrir os campos de nova senha
-export async function verificarEmail(email: string) {
+// "Esqueci a senha": confere se e-mail e telefone são da mesma conta antes de abrir os campos de nova senha
+export async function verificarEmail(email: string, telefone: string) {
   const res = await fetch(`${BASE_URL}/authcontrolador/verificar-email`, {
     method: 'POST',
     headers: cabecalhos(true),
-    body: JSON.stringify({ Email: email }),
+    body: JSON.stringify({ Email: email, Telefone: telefone }),
   });
   const data = await parseResponse(res);
-  if (!res.ok) throw new Error(typeof data === 'string' ? data : 'Não encontramos uma conta com esse e-mail.');
+  if (!res.ok) throw new Error(typeof data === 'string' ? data : 'E-mail e telefone não conferem com nenhuma conta.');
   return data;
 }
 
-// Grava a nova senha para aquele e-mail
-export async function redefinirSenha(email: string, novaSenha: string) {
+// Grava a nova senha (a API confere e-mail e telefone de novo)
+export async function redefinirSenha(email: string, telefone: string, novaSenha: string) {
   const res = await fetch(`${BASE_URL}/authcontrolador/redefinir-senha`, {
     method: 'POST',
     headers: cabecalhos(true),
-    body: JSON.stringify({ Email: email, NovaSenha: novaSenha }),
+    body: JSON.stringify({ Email: email, Telefone: telefone, NovaSenha: novaSenha }),
   });
   const data = await parseResponse(res);
   if (!res.ok) throw new Error(typeof data === 'string' ? data : 'Não foi possível redefinir a senha.');

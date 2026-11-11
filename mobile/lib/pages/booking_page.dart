@@ -55,6 +55,15 @@ class _BookingPageState extends State<BookingPage> {
     '19:00',
   ];
 
+  // Hoje não dá para escolher um horário que já passou.
+  bool _horarioPassou(String time) {
+    if (_date != todayIso()) return false;
+    final agora = DateTime.now();
+    final horaAgora = '${agora.hour.toString().padLeft(2, '0')}:'
+        '${agora.minute.toString().padLeft(2, '0')}';
+    return time.compareTo(horaAgora) <= 0;
+  }
+
   @override
   void dispose() {
     _successTimer?.cancel();
@@ -77,6 +86,10 @@ class _BookingPageState extends State<BookingPage> {
     }
     if (_time.isEmpty) {
       setState(() => _erro = 'Selecione um horário.');
+      return;
+    }
+    if (_horarioPassou(_time)) {
+      setState(() => _erro = 'Esse horário já passou. Escolha outro.');
       return;
     }
 
@@ -312,6 +325,7 @@ class _BookingPageState extends State<BookingPage> {
               _TimeGrid(
                 slots: _timeSlots,
                 selected: _time,
+                passou: _horarioPassou,
                 onSelect: (time) => setState(() => _time = time),
               ),
             ],
@@ -502,11 +516,13 @@ class _TimeGrid extends StatelessWidget {
   const _TimeGrid({
     required this.slots,
     required this.selected,
+    required this.passou,
     required this.onSelect,
   });
 
   final List<String> slots;
   final String selected;
+  final bool Function(String time) passou;
   final ValueChanged<String> onSelect;
 
   static const _columns = 4;
@@ -516,8 +532,7 @@ class _TimeGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final width =
-            (constraints.maxWidth - _gap * (_columns - 1)) / _columns;
+        final width = (constraints.maxWidth - _gap * (_columns - 1)) / _columns;
         return Wrap(
           spacing: _gap,
           runSpacing: _gap,
@@ -525,27 +540,33 @@ class _TimeGrid extends StatelessWidget {
             for (final time in slots)
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
-                onTap: () => onSelect(time),
-                child: AnimatedContainer(
+                onTap: passou(time) ? null : () => onSelect(time),
+                child: AnimatedOpacity(
                   duration: const Duration(milliseconds: 200),
-                  width: width,
-                  height: 42,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color:
-                        selected == time ? AppColors.primary : AppColors.input,
-                    border: Border.all(
+                  opacity: passou(time) ? 0.3 : 1,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: width,
+                    height: 42,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
                       color: selected == time
                           ? AppColors.primary
-                          : AppColors.primary20,
+                          : AppColors.input,
+                      border: Border.all(
+                        color: selected == time
+                            ? AppColors.primary
+                            : AppColors.primary20,
+                      ),
                     ),
-                  ),
-                  child: Text(
-                    time,
-                    style: AppText.body(
-                      14,
-                      color: selected == time ? AppColors.page : AppColors.text,
-                      weight: FontWeight.w600,
+                    child: Text(
+                      time,
+                      style: AppText.body(
+                        14,
+                        color:
+                            selected == time ? AppColors.page : AppColors.text,
+                        weight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),

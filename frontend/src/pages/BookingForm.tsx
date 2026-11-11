@@ -55,6 +55,14 @@ export function BookingForm({
     "19:00",
   ];
 
+  // Hoje não dá para escolher um horário que já passou
+  const horarioPassou = (time: string) => {
+    if (formData.date !== hoje) return false;
+    const agora = new Date();
+    const horaAgora = `${String(agora.getHours()).padStart(2, "0")}:${String(agora.getMinutes()).padStart(2, "0")}`;
+    return time <= horaAgora;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
   if (!user) return;
@@ -71,6 +79,10 @@ export function BookingForm({
   }
   if (!formData.time) {
     setErro("Selecione um horário.");
+    return;
+  }
+  if (horarioPassou(formData.time)) {
+    setErro("Esse horário já passou. Escolha outro.");
     return;
   }
 
@@ -92,8 +104,8 @@ export function BookingForm({
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 3000);
 
-  } catch (err: any) {
-    setErro(err.message || "Erro ao realizar agendamento.");
+  } catch (err) {
+    setErro(err instanceof Error && err.message ? err.message : "Erro ao realizar agendamento.");
   } finally {
     setLoading(false);
   }
@@ -238,6 +250,7 @@ export function BookingForm({
                         <button
                           key={time}
                           type="button"
+                          disabled={horarioPassou(time)}
                           onClick={() => setFormData({ ...formData, time })}
                           className={`booking-time-btn ${formData.time === time ? "selected" : ""}`}
                         >

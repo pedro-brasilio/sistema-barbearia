@@ -31,8 +31,8 @@ class _LoginPageState extends State<LoginPage> {
   bool _showPassword = false;
   bool _showConfirmPassword = false;
 
-  // "Esqueci a senha": passo 1 confere o e-mail, passo 2 define a nova senha.
-  // Reaproveita os campos _email, _password e _confirmPassword.
+  // "Esqueci a senha": passo 1 confere e-mail + telefone, passo 2 define a
+  // nova senha. Reaproveita os campos _email, _phone, _password e _confirmPassword.
   bool _forgotMode = false;
   int _forgotStep = 1;
 
@@ -90,6 +90,10 @@ class _LoginPageState extends State<LoginPage> {
 
     if (!_isLoginMode && _password.text != _confirmPassword.text) {
       setState(() => _erro = 'As senhas não coincidem.');
+      return;
+    }
+    if (!_isLoginMode && _password.text.length < 6) {
+      setState(() => _erro = 'A senha precisa ter pelo menos 6 caracteres.');
       return;
     }
 
@@ -179,7 +183,7 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
-  // Passo 1: confere se existe uma conta com o e-mail digitado.
+  // Passo 1: confere se e-mail e telefone são da mesma conta.
   Future<void> _handleVerificarEmail() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
@@ -189,7 +193,7 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      await Api.verificarEmail(_email.text);
+      await Api.verificarEmail(_email.text, _phone.text);
       if (mounted) {
         setState(() {
           _forgotStep = 2;
@@ -201,7 +205,7 @@ class _LoginPageState extends State<LoginPage> {
       if (mounted) {
         setState(() => _erro = message.isNotEmpty
             ? message
-            : 'Não encontramos uma conta com esse e-mail.');
+            : 'E-mail e telefone não conferem com nenhuma conta.');
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -226,7 +230,11 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _loading = true);
 
     try {
-      await Api.redefinirSenha(email: _email.text, novaSenha: _password.text);
+      await Api.redefinirSenha(
+        email: _email.text,
+        telefone: _phone.text,
+        novaSenha: _password.text,
+      );
       if (mounted) {
         setState(() {
           _forgotMode = false;
@@ -386,8 +394,8 @@ class _LoginPageState extends State<LoginPage> {
             validator: _required,
             suffix: EyeToggle(
               visible: _showConfirmPassword,
-              onToggle: () => setState(
-                  () => _showConfirmPassword = !_showConfirmPassword),
+              onToggle: () =>
+                  setState(() => _showConfirmPassword = !_showConfirmPassword),
             ),
           ),
         ),
@@ -413,7 +421,8 @@ class _LoginPageState extends State<LoginPage> {
                 : 'CRIAR CONTA',
         onPressed: _loading ? null : _handleSubmit,
         foreground: AppColors.black,
-        textStyle: AppText.system(14, weight: FontWeight.w800, letterSpacing: 4),
+        textStyle:
+            AppText.system(14, weight: FontWeight.w800, letterSpacing: 4),
       ),
       const SizedBox(height: 30),
       Container(height: 1, color: AppColors.loginBorder),
@@ -448,8 +457,8 @@ class _LoginPageState extends State<LoginPage> {
         Padding(
           padding: const EdgeInsets.only(bottom: 18),
           child: Text(
-            'Digite o e-mail da sua conta. Se encontrarmos, você cria uma '
-            'nova senha em seguida.',
+            'Digite o e-mail e o telefone cadastrados na sua conta. Se '
+            'conferirem, você cria uma nova senha em seguida.',
             style: AppText.body(14, color: AppColors.gray77, height: 1.5),
           ),
         ),
@@ -462,6 +471,17 @@ class _LoginPageState extends State<LoginPage> {
             keyboardType: TextInputType.emailAddress,
             validator: _emailValidator,
             autofillHints: const [AutofillHints.email],
+          ),
+        ),
+        _LoginField(
+          label: 'TELEFONE CADASTRADO',
+          child: _input(
+            controller: _phone,
+            hint: '(11) 99999-9999',
+            icon: LucideIcons.phone,
+            keyboardType: TextInputType.phone,
+            validator: _required,
+            autofillHints: const [AutofillHints.telephoneNumber],
           ),
         ),
       ] else ...[
@@ -520,9 +540,12 @@ class _LoginPageState extends State<LoginPage> {
                 : 'REDEFINIR SENHA',
         onPressed: _loading
             ? null
-            : (_forgotStep == 1 ? _handleVerificarEmail : _handleRedefinirSenha),
+            : (_forgotStep == 1
+                ? _handleVerificarEmail
+                : _handleRedefinirSenha),
         foreground: AppColors.black,
-        textStyle: AppText.system(14, weight: FontWeight.w800, letterSpacing: 4),
+        textStyle:
+            AppText.system(14, weight: FontWeight.w800, letterSpacing: 4),
       ),
       const SizedBox(height: 30),
       Container(height: 1, color: AppColors.loginBorder),

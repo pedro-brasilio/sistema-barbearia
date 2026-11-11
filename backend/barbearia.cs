@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using barbearia.Controllers;
 using barbearia.dados;
 using barbearia.seguranca;
 
@@ -34,6 +36,25 @@ builder.Services
         };
     });
 builder.Services.AddAuthorization();
+
+// "Esqueci a senha": no máximo 10 tentativas a cada 10 minutos por endereço,
+// para ninguém ficar chutando telefones até acertar
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.OnRejected = (contexto, cancelamento) =>
+        new ValueTask(contexto.HttpContext.Response.WriteAsync(
+            "muitas tentativas. Espere alguns minutos e tente de novo.", cancelamento));
+
+    options.AddPolicy(authcontrolador.LimiteRedefinirSenha, http =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            http.Connection.RemoteIpAddress?.ToString() ?? "desconhecido",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(10),
+            }));
+});
 
 // Banco de dados (PostgreSQL)
 var connectionString = Inicializadorbanco.ConverterConnectionString(
@@ -79,5 +100,6 @@ app.UseHttpsRedirection();
 app.UseCors("FrontendPolicy"); // precisa vir antes do UseAuthentication
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 app.MapControllers();
 app.Run();

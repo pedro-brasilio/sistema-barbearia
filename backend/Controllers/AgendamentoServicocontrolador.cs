@@ -22,6 +22,7 @@ namespace barbearia.Controllers
         
 
         [HttpGet]
+        [Authorize(Roles = Tokens.PapelAdmin)]
         public async Task<ActionResult<IEnumerable<agendamentoservico>>> get()
         {
             return await _context.agendamentoservicos.ToListAsync();

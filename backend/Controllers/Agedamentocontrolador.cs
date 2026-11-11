@@ -13,6 +13,14 @@ namespace barbearia.Controllers
     {
         private readonly Barbeariacontext _context;
 
+        // Os mesmos horários dos botões do site (BookingForm.tsx) e do app (booking_page.dart)
+        public static readonly HashSet<TimeOnly> HorariosAtendimento = new[]
+        {
+            "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
+            "14:00", "14:30", "15:00", "15:30", "16:00", "16:30",
+            "17:00", "17:30", "18:00", "18:30", "19:00",
+        }.Select(TimeOnly.Parse).ToHashSet();
+
         public Agedamentocontrolador(Barbeariacontext context)
         {
             _context = context;
@@ -68,6 +76,25 @@ namespace barbearia.Controllers
             if (!User.EhAdmin())
                 agendamento.Clienteid = User.Id();
             agendamento.id = 0;
+            agendamento.Data = agendamento.Data.Date;
+            agendamento.Servicos = (agendamento.Servicos ?? "").Trim();
+
+            // Só os horários que o site e o app oferecem
+            if (!HorariosAtendimento.Contains(agendamento.DataHorainicio))
+                return BadRequest("escolha um dos horarios de atendimento.");
+
+            // Horário de Brasília (sem horário de verão desde 2019)
+            var agora = DateTime.UtcNow.AddHours(-3);
+            if (agendamento.Data.Add(agendamento.DataHorainicio.ToTimeSpan()) <= agora)
+                return BadRequest("esse horario ja passou.");
+
+            // Duração de cada serviço, para saber até quando o horário fica ocupado
+            var duracoes = new Dictionary<string, int>();
+            foreach (var s in await _context.servicos.ToListAsync())
+                duracoes.TryAdd(s.NameServico.Trim().ToLower(), s.DuracaoMinutos);
+
+            if (!duracoes.TryGetValue(agendamento.Servicos.ToLower(), out var duracaoNovo))
+                return BadRequest("servico nao encontrado.");
 
             // Limite de 3 agendamentos no mês
             var inicio = new DateTime(agendamento.Data.Year, agendamento.Data.Month, 1);
@@ -82,12 +109,27 @@ namespace barbearia.Controllers
             if (countMes >= 3)
                 return BadRequest("limite de 3 agendamentos por mes atingido.");
 
-            // Verifica se horário já está ocupado
-            var horarioOcupado = await _context.Agendamentos
-                .AnyAsync(a =>
-                    a.Data == agendamento.Data.Date &&
-                    a.DataHorainicio == agendamento.DataHorainicio &&
-                    a.Situacao != "cancelado");
+            // Verifica se o horário bate com outro agendamento do dia, contando a duração
+            // dos serviços (ex.: um "Corte + Barba" de 50 min às 10:00 ocupa também 10:30)
+            var doDia = await _context.Agendamentos
+                .Where(a => a.Data == agendamento.Data && a.Situacao != "cancelado")
+                .Select(a => new { a.DataHorainicio, a.Servicos })
+                .ToListAsync();
+
+            int Minutos(TimeOnly hora) => hora.Hour * 60 + hora.Minute;
+            // Serviço que não existe mais conta como 30 min (o intervalo entre horários)
+            int Duracao(string servico) =>
+                duracoes.TryGetValue((servico ?? "").Trim().ToLower(), out var d) ? d : 30;
+
+            var inicioNovo = Minutos(agendamento.DataHorainicio);
+            var fimNovo = inicioNovo + duracaoNovo;
+
+            var horarioOcupado = doDia.Any(a =>
+            {
+                var inicio = Minutos(a.DataHorainicio);
+                var fim = inicio + Duracao(a.Servicos);
+                return inicio < fimNovo && inicioNovo < fim;
+            });
 
             if (horarioOcupado)
                 return BadRequest("horario ja esta ocupado.");

@@ -145,32 +145,35 @@ class Api {
     return data;
   }
 
-  /// "Esqueci a senha": confere se existe conta com o e-mail antes de abrir
-  /// os campos de nova senha.
-  static Future<dynamic> verificarEmail(String email) async {
+  /// "Esqueci a senha": confere se e-mail e telefone são da mesma conta antes
+  /// de abrir os campos de nova senha.
+  static Future<dynamic> verificarEmail(String email, String telefone) async {
     final res = await _send(http.post(
       _uri('/authcontrolador/verificar-email'),
       headers: _jsonHeaders,
-      body: jsonEncode({'Email': email}),
+      body: jsonEncode({'Email': email, 'Telefone': telefone}),
     ));
     final data = _parseResponse(res);
     if (!_ok(res)) {
       throw ApiException(
-        _errorWithMessage(data, 'Não encontramos uma conta com esse e-mail.'),
+        _errorWithMessage(
+            data, 'E-mail e telefone não conferem com nenhuma conta.'),
       );
     }
     return data;
   }
 
-  /// Grava a nova senha para aquele e-mail.
+  /// Grava a nova senha (a API confere e-mail e telefone de novo).
   static Future<dynamic> redefinirSenha({
     required String email,
+    required String telefone,
     required String novaSenha,
   }) async {
     final res = await _send(http.post(
       _uri('/authcontrolador/redefinir-senha'),
       headers: _jsonHeaders,
-      body: jsonEncode({'Email': email, 'NovaSenha': novaSenha}),
+      body: jsonEncode(
+          {'Email': email, 'Telefone': telefone, 'NovaSenha': novaSenha}),
     ));
     final data = _parseResponse(res);
     if (!_ok(res)) {

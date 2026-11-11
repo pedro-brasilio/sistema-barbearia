@@ -9,6 +9,11 @@ interface LoginProps {
   onLoginSuccess: (user: { id: number; name: string; email: string; telefone: string; isAdmin: boolean }) => void;
 }
 
+// Mensagem de um erro lançado pela API (ou o texto padrão)
+function mensagem(err: unknown, padrao: string) {
+  return err instanceof Error && err.message ? err.message : padrao;
+}
+
 export function Login({ onNavigateBack, onLoginSuccess }: LoginProps) {
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -16,12 +21,13 @@ export function Login({ onNavigateBack, onLoginSuccess }: LoginProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // "Esqueci a senha": passo 1 confere o e-mail, passo 2 define a nova senha
+  // "Esqueci a senha": passo 1 confere e-mail + telefone, passo 2 define a nova senha
   const [forgotMode, setForgotMode] = useState(false);
   const [forgotStep, setForgotStep] = useState<1 | 2>(1);
   const [sucesso, setSucesso] = useState("");
   const [forgotData, setForgotData] = useState({
     email: "",
+    phone: "",
     password: "",
     confirmPassword: "",
   });
@@ -38,23 +44,23 @@ export function Login({ onNavigateBack, onLoginSuccess }: LoginProps) {
   const sairDoForgot = () => {
     setForgotMode(false);
     setForgotStep(1);
-    setForgotData({ email: "", password: "", confirmPassword: "" });
+    setForgotData({ email: "", phone: "", password: "", confirmPassword: "" });
     setErro("");
     setSucesso("");
     setShowPassword(false);
     setShowConfirmPassword(false);
   };
 
-  // Passo 1: confere se existe uma conta com o e-mail digitado
+  // Passo 1: confere se e-mail e telefone são da mesma conta
   const handleVerificarEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     setErro("");
     setLoading(true);
     try {
-      await verificarEmail(forgotData.email);
+      await verificarEmail(forgotData.email, forgotData.phone);
       setForgotStep(2);
-    } catch (err: any) {
-      setErro(err.message || "Não encontramos uma conta com esse e-mail.");
+    } catch (err) {
+      setErro(mensagem(err, "E-mail e telefone não conferem com nenhuma conta."));
     } finally {
       setLoading(false);
     }
@@ -76,11 +82,11 @@ export function Login({ onNavigateBack, onLoginSuccess }: LoginProps) {
 
     setLoading(true);
     try {
-      await redefinirSenha(forgotData.email, forgotData.password);
+      await redefinirSenha(forgotData.email, forgotData.phone, forgotData.password);
       sairDoForgot();
       setSucesso("Senha redefinida! Agora é só entrar com a nova senha.");
-    } catch (err: any) {
-      setErro(err.message || "Não foi possível redefinir a senha.");
+    } catch (err) {
+      setErro(mensagem(err, "Não foi possível redefinir a senha."));
     } finally {
       setLoading(false);
     }
@@ -92,6 +98,10 @@ export function Login({ onNavigateBack, onLoginSuccess }: LoginProps) {
 
     if (!isLoginMode && formData.password !== formData.confirmPassword) {
       setErro("As senhas não coincidem.");
+      return;
+    }
+    if (!isLoginMode && formData.password.length < 6) {
+      setErro("A senha precisa ter pelo menos 6 caracteres.");
       return;
     }
 
@@ -129,8 +139,8 @@ export function Login({ onNavigateBack, onLoginSuccess }: LoginProps) {
         });
       }
 
-    } catch (err: any) {
-      setErro(err.message || "Algo deu errado. Tente novamente.");
+    } catch (err) {
+      setErro(mensagem(err, "Algo deu errado. Tente novamente."));
     } finally {
       setLoading(false);
     }
@@ -200,7 +210,7 @@ export function Login({ onNavigateBack, onLoginSuccess }: LoginProps) {
                 {forgotStep === 1 ? (
                   <>
                     <p className="forgot-hint">
-                      Digite o e-mail da sua conta. Se encontrarmos, você cria uma nova senha em seguida.
+                      Digite o e-mail e o telefone cadastrados na sua conta. Se conferirem, você cria uma nova senha em seguida.
                     </p>
                     <div className="input-group">
                       <label>E-MAIL</label>
@@ -211,6 +221,19 @@ export function Login({ onNavigateBack, onLoginSuccess }: LoginProps) {
                           placeholder="seu@email.com"
                           value={forgotData.email}
                           onChange={(e) => setForgotData({ ...forgotData, email: e.target.value })}
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="input-group">
+                      <label>TELEFONE CADASTRADO</label>
+                      <div className="input-box">
+                        <Phone className="input-icon" size={18} />
+                        <input
+                          type="tel"
+                          placeholder="(11) 99999-9999"
+                          value={forgotData.phone}
+                          onChange={(e) => setForgotData({ ...forgotData, phone: e.target.value })}
                           required
                         />
                       </div>
@@ -381,7 +404,7 @@ export function Login({ onNavigateBack, onLoginSuccess }: LoginProps) {
                   onClick={() => {
                     setForgotMode(true);
                     setForgotStep(1);
-                    setForgotData({ email: formData.email, password: "", confirmPassword: "" });
+                    setForgotData({ email: formData.email, phone: "", password: "", confirmPassword: "" });
                     setErro("");
                     setSucesso("");
                   }}
