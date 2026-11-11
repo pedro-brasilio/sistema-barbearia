@@ -6,7 +6,10 @@
 # atualize Cors__Origins e VITE_API_URL no painel e faça um novo deploy.
 
 databases:
-  - name: barbearia-db
+  # O banco free do Render expira 30 dias depois de criado. O primeiro (barbearia-db)
+  # expirou em 05/11/2026 e este o substitui. Para trocar de novo, mude o nome aqui e
+  # no fromDatabase da API e faça push no main: a API recria as tabelas e os dados iniciais.
+  - name: barbearia-db-2
     plan: free
     region: virginia
     databaseName: barbearia
@@ -29,7 +32,7 @@ services:
         value: "8080"
       - key: ConnectionStrings__DefaultConnection
         fromDatabase:
-          name: barbearia-db
+          name: barbearia-db-2
           property: connectionString
       - key: Cors__Origins
         value: https://barbearia-pim-web.onrender.com
