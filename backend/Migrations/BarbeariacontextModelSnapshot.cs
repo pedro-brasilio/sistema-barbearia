@@ -22,6 +22,23 @@ namespace barbearia.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("barbearia.modelos.AgendaSemanal", b =>
+                {
+                    b.Property<int>("AgendamentoId")
+                        .HasColumnType("integer")
+                        .HasColumnName("agendamento_id");
+
+                    b.Property<DateTime>("InicioSemana")
+                        .HasColumnType("date")
+                        .HasColumnName("inicio_semana");
+
+                    b.HasKey("AgendamentoId");
+
+                    b.HasIndex("InicioSemana");
+
+                    b.ToTable("agenda_semanal", (string)null);
+                });
+
             modelBuilder.Entity("barbearia.modelos.Agendamento", b =>
                 {
                     b.Property<int>("id")
@@ -196,6 +213,15 @@ namespace barbearia.Migrations
                     b.HasKey("ID");
 
                     b.ToTable("servicos");
+                });
+
+            modelBuilder.Entity("barbearia.modelos.AgendaSemanal", b =>
+                {
+                    b.HasOne("barbearia.modelos.Agendamento", null)
+                        .WithOne()
+                        .HasForeignKey("barbearia.modelos.AgendaSemanal", "AgendamentoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

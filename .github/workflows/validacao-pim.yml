@@ -1,0 +1,96 @@
+name: Validacao do PIM
+
+on:
+  pull_request:
+  push:
+    paths:
+      - backend/**
+      - database/**
+      - frontend/**
+      - mobile/**
+      - tests/**
+      - .github/workflows/validacao-pim.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  banco-e-api:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: pim_test
+          POSTGRES_PASSWORD: isolated-test-password
+          POSTGRES_DB: pim_agenda_sql
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U pim_test -d pim_agenda_sql"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compila a API
+        run: dotnet build backend/barbearia.csproj -c Release
+      - name: Valida script idempotente e gatilhos no PostgreSQL
+        env:
+          PG_CONTAINER: ${{ job.services.postgres.id }}
+        run: |
+          docker exec -i "$PG_CONTAINER" psql -U pim_test -d pim_agenda_sql -v ON_ERROR_STOP=1 < database/Barbearia.PostgreSQL.sql
+          docker exec -i "$PG_CONTAINER" psql -U pim_test -d pim_agenda_sql -v ON_ERROR_STOP=1 < database/Barbearia.PostgreSQL.sql
+          docker exec -i "$PG_CONTAINER" psql -U pim_test -d pim_agenda_sql -v ON_ERROR_STOP=1 < database/tests/agenda_semanal.sql
+          docker exec "$PG_CONTAINER" createdb -U pim_test pim_agenda_upgrade
+          for script in database/tests/migration/agenda_before.sql database/tests/migration/agenda_upgrade_seed.sql database/Barbearia.PostgreSQL.sql database/tests/migration/agenda_upgrade_check.sql database/tests/migration/agenda_down.sql database/tests/migration/agenda_down_check.sql database/Barbearia.PostgreSQL.sql database/tests/migration/agenda_upgrade_check.sql; do
+            docker exec -i "$PG_CONTAINER" psql -U pim_test -d pim_agenda_upgrade -v ON_ERROR_STOP=1 < "$script"
+          done
+          docker exec "$PG_CONTAINER" createdb -U pim_test pim_agenda_api
+      - name: Valida agenda pela API com banco isolado
+        env:
+          PIM_TEST_DB_CONNECTION: Host=127.0.0.1;Port=5432;Database=pim_agenda_api;Username=pim_test;Password=isolated-test-password
+        run: python tests/agenda_api_test.py
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: log-api-testes
+          path: tests/agenda_api_run.log
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+
+  mobile:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.47.6
+          cache: true
+      - run: flutter pub get
+      - run: flutter test

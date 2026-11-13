@@ -58,3 +58,17 @@ String formatDateLong(String iso) {
   final weekday = _weekdays[date.weekday - 1];
   return '$weekday, ${date.day} de ${_longMonths[date.month - 1]} de ${date.year}';
 }
+
+/// Desloca uma data civil sem depender de mudanças de horário de verão.
+String shiftIsoDays(String value, int days) {
+  final date = parseIsoDate(value);
+  if (date == null) throw FormatException('Data inválida', value);
+  return isoDate(DateTime.utc(date.year, date.month, date.day + days));
+}
+
+/// Segunda-feira ISO da semana que contém o dia informado.
+String weekStartIso(String value) {
+  final date = parseIsoDate(value);
+  if (date == null) throw FormatException('Data inválida', value);
+  return shiftIsoDays(value, -(date.weekday - DateTime.monday));
+}
